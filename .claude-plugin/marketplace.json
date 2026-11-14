@@ -1,0 +1,6 @@
+{
+  "name": "claude-looks",
+  "description": "Looks for the Claude desktop and mobile apps.",
+  "owner": { "name": "enuzzo" },
+  "plugins": [{ "name": "looks", "source": "./", "description": "A collection of looks, switched with /look." }]
+}
