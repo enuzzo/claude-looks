@@ -90,3 +90,15 @@ test('/look preview draws a picture of each look on the apps', async ($, on) => 
   expect(pictures.length).toBeGreaterThan(0)
   await ui.unmount()
 })
+
+test('a stored look this version lacks leaves the theme alone at start', async ($, on) => {
+  engine(on, 'a-look-that-was-removed')
+  let cleared = false
+  on('theme.clear', () => {
+    cleared = true
+    return { value: { isDrawn: false, reason: 'cleared' } }
+  })
+
+  await $.session.start(START)
+  expect(cleared).toBe(false)
+})

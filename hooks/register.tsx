@@ -14,6 +14,10 @@ const current = atom({ plugin: 'looks', key: 'current' } as const, DEFAULT_LOOK)
 
 const findLook = (id: string) => LOOKS.find(look => look.id === id)
 
+// The backdrop names the plugin that set it; installed from a marketplace the
+// name may carry it (`looks@claude-looks`).
+const isOurs = (plugin: string) => plugin === 'looks' || plugin.startsWith('looks@')
+
 // Where no theme noun is offered (the plugin test kit), a look is only remembered.
 const NO_THEME = { isDrawn: false as const, reason: 'this host draws no looks' }
 
@@ -82,7 +86,9 @@ export const register: Register = on => {
     const id = await storedLook($)
     await update($, current, () => id)
 
-    if (id !== OFF) {
+    // Only a look this version still has: a stored id it lacks (a renamed or
+    // removed look) must not clear another plugin's theme at session start.
+    if (findLook(id) !== undefined) {
       const set = await apply($, id)
 
       if (!set.isDrawn && 'reason' in set) {
@@ -152,7 +158,7 @@ export const register: Register = on => {
   on('ui.render', { component: 'Backdrop' }, ($, e, next) => {
     const scene = LOOKS.find(look => look.args.backdrop !== undefined && 'scene' in look.args.backdrop && look.args.backdrop.scene === e.props.scene)?.scene
 
-    if ((e.surface !== 'desktop' && e.surface !== 'mobile') || e.props.plugin !== 'looks' || scene === undefined) {
+    if ((e.surface !== 'desktop' && e.surface !== 'mobile') || !isOurs(e.props.plugin) || scene === undefined) {
       return next(e)
     }
     const { Svg } = $.ui.resolve(e)
