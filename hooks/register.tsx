@@ -1,11 +1,16 @@
+import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import { DEFAULT_LOOK, LOOKS } from './looks/index.js'
+import { previewCard } from './preview-card.js'
 
 // The chosen look lives in the plugin's store, so it survives restarts and
-// follows every session; 'off' means the app's own look.
+// follows every session; 'off' means the app's own look. The session's copy in
+// $.state is what the /look list draws its marker from.
 const STORE_KEY = 'look'
 const OFF = 'off'
+const PREVIEW = 'preview'
+const current = atom({ plugin: 'looks', key: 'current' } as const, DEFAULT_LOOK)
 
 const findLook = (id: string) => LOOKS.find(look => look.id === id)
 
@@ -41,15 +46,41 @@ async function apply($: EngineInterface, id: string) {
   }
 }
 
+// Wears a look (or 'off'): remembers it, then draws it. Answers one line.
+async function wear($: EngineInterface, id: string) {
+  await $.store.set(STORE_KEY, id)
+  await update($, current, () => id)
+
+  if (id === OFF) {
+    await clearLook($)
+    return 'Back to the app’s own look.'
+  }
+  const look = findLook(id)
+  const set = await apply($, id)
+
+  return set.isDrawn ? `Now wearing ${look?.label ?? id}.` : `Chose ${look?.label ?? id}; nothing draws here (${'reason' in set ? set.reason : 'unknown'}).`
+}
+
+async function storedLook($: EngineInterface) {
+  const stored = await $.store.get(STORE_KEY)
+  return typeof stored === 'string' ? stored : DEFAULT_LOOK
+}
+
+function listText(worn: string) {
+  const lines = LOOKS.map(look => `${look.id === worn ? '▸' : ' '} ${look.id} — ${look.description}`)
+  lines.push(`${worn === OFF ? '▸' : ' '} off — the app’s own look`)
+  return `Looks:\n${lines.join('\n')}\n\n/look <name> to switch, /look preview for pictures.`
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'look',
-      description: 'Switch the look: /look lists them, /look <name> wears one, /look off goes back to the app’s own.',
-      argumentHint: '[name|off]',
+      description: 'Switch the look: /look lists them, /look preview shows them, /look <name> wears one, /look off goes back.',
+      argumentHint: '[name|preview|off]',
     })
-    const stored = await $.store.get(STORE_KEY)
-    const id = typeof stored === 'string' ? stored : DEFAULT_LOOK
+    const id = await storedLook($)
+    await update($, current, () => id)
 
     if (id !== OFF) {
       const set = await apply($, id)
@@ -64,35 +95,64 @@ export const register: Register = on => {
 
   on('command.run', { command: 'look' }, async ($, e) => {
     const wanted = e.args.trim().toLowerCase()
-    const stored = await $.store.get(STORE_KEY)
-    const current = typeof stored === 'string' ? stored : DEFAULT_LOOK
 
-    if (wanted === '') {
-      const lines = LOOKS.map(look => `${look.id === current ? '▸' : ' '} ${look.id} — ${look.description}`)
-      lines.push(`${current === OFF ? '▸' : ' '} off — the app’s own look`)
-      return { text: `Looks:\n${lines.join('\n')}\n\n/look <name> to switch.` }
+    if (wanted === '' || wanted === PREVIEW) {
+      return { text: listText(await storedLook($)) }
     }
 
-    if (wanted === OFF) {
-      await $.store.set(STORE_KEY, OFF)
-      await $.theme.clear()
-      return { text: 'Back to the app’s own look.' }
-    }
-    const look = findLook(wanted)
-
-    if (look === undefined) {
+    if (wanted !== OFF && findLook(wanted) === undefined) {
       return { text: `No look named “${wanted}”. Known: ${LOOKS.map(l => l.id).join(', ')}, off.` }
     }
-    await $.store.set(STORE_KEY, look.id)
-    const set = await apply($, look.id)
 
-    return { text: set.isDrawn ? `Now wearing ${look.label}.` : `Chose ${look.label}; nothing draws here (${'reason' in set ? set.reason : 'unknown'}).` }
+    return { text: await wear($, wanted) }
+  })
+
+  // The list /look prints, drawn as buttons that wear a look when pressed;
+  // /look preview adds a small picture of each on the apps.
+  on('ui.render', { component: 'CommandOutput', props: { command: 'look' } }, async ($, e, next) => {
+    const args = e.props.args.trim().toLowerCase()
+
+    if (e.props.isErrored || (args !== '' && args !== PREVIEW)) {
+      return next(e)
+    }
+    const worn = await read($, current)
+    const { Box, Text, Button } = $.ui.resolve(e)
+    const row = (id: string, label: string, description: string) => (
+      <Box key={id} flexDirection="row" gap={1}>
+        <Button key={id} plain onPress={() => wear($, id)}>{`${id === worn ? '▸' : ' '} ${label}`}</Button>
+        <Text dimColor>{description}</Text>
+      </Box>
+    )
+
+    if (args === PREVIEW && (e.surface === 'desktop' || e.surface === 'mobile')) {
+      const { Svg } = $.ui.resolve(e)
+
+      return (
+        <Box flexDirection="column" gap={1}>
+          {LOOKS.map(look => (
+            <Box key={look.id} flexDirection="column">
+              <Svg source={previewCard(look)} alt={`${look.label}: ${look.description}`} width={320} height={180} />
+              {row(look.id, look.label, look.description)}
+            </Box>
+          ))}
+          {row(OFF, 'Off', 'the app’s own look')}
+        </Box>
+      )
+    }
+
+    return (
+      <Box flexDirection="column">
+        {LOOKS.map(look => row(look.id, look.label, look.description))}
+        {row(OFF, 'Off', 'the app’s own look')}
+        <Text dimColor>Press one to wear it{args === PREVIEW ? ' (pictures show in the desktop and mobile apps)' : ', or /look preview for pictures'}.</Text>
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'Backdrop' }, ($, e, next) => {
     const scene = LOOKS.find(look => look.args.backdrop !== undefined && 'scene' in look.args.backdrop && look.args.backdrop.scene === e.props.scene)?.scene
 
-    if ((e.surface !== 'desktop' && e.surface !== 'mobile') || scene === undefined) {
+    if ((e.surface !== 'desktop' && e.surface !== 'mobile') || e.props.plugin !== 'looks' || scene === undefined) {
       return next(e)
     }
     const { Svg } = $.ui.resolve(e)

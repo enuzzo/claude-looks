@@ -15,17 +15,18 @@ const OUT = join(ROOT, 'docs', 'screenshots')
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const SIZES = { desktop: [1440, 900, 1], mobile: [390, 844, 2] }
 
-// The design system's gray ramp: which step each surface and text sits on, per mode.
+// Which ramp step each surface, text and role text sits on, per mode, as
+// hooks/make-colors.js maps them (surface-0 is gray-20 / gray-900, and so on).
 const RAMP = {
-  dark: { s0: 900, s1: 850, s2: 830, s3: 800, t1: 50, t2: 200, t3: 400 },
-  light: { s0: 100, s1: 50, s2: 0, s3: 0, t1: 900, t2: 700, t3: 600 },
+  dark: { s0: 900, s1: 850, s2: 830, s3: 800, t1: 50, t2: 200, t3: 400, role: 300, success: 400 },
+  light: { s0: 20, s1: 10, s2: 0, s3: 0, t1: 900, t2: 600, t3: 400, role: 600, success: 600 },
 }
 
 function palette(look, mode) {
   const c = look.args.colors.inputs[mode]
   const g = n => c[`gray-${n}`]
   const r = RAMP[mode]
-  const role = name => c[`role-${name}-300`] ?? c[`role-${name}-250`] ?? c[`role-${name}-fill`]
+  const role = name => c[`role-${name}-${name === 'success' ? r.success : r.role}`] ?? c[`role-${name}-fill`]
   return {
     s0: g(r.s0), s1: g(r.s1), s2: g(r.s2), s3: g(r.s3), t1: g(r.t1), t2: g(r.t2), t3: g(r.t3),
     accent: role('accent'), fill: c['role-accent-fill'], on: c['role-accent-on'],
