@@ -40,9 +40,7 @@ A fresh install wears `synthwave-sunset`.
 
 ### `synthwave-sunset`
 
-Dark only. A violet night sky with twinkling stars, a striped sun setting behind neon-edged
-mountains, and a pink grid rolling toward you forever. Hot pink accent; errors stay red,
-successes go neon mint, warnings amber. Respects *reduce motion*.
+Dark only. A striped sun sinking on the left, its bands slowly drifting down, wireframe mountains on the right, a sky of twinkling ASCII stars, and a neon grid rolling toward you. Every so often something small happens: a light runs down the grid, a spark traces the ridge, a star shoots by, the horizon flares. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -66,7 +64,7 @@ Dark only. Columns of green half-width katakana, digits and letters fall at thei
 
 ### `neon-punk`
 
-Dark only. A stained brick wall in a back alley, lit by neon tubes in the corners (an acid green bolt, an electric blue arrow and star, a magenta ring) that flicker now and then, with paint running down the bricks. Acid yellow-green accent, magenta for pro; errors stay red, warnings amber. Respects *reduce motion*.
+Dark only. A grimy back-alley wall (a generated painting, inlined in the scene) splashed with magenta and acid-green paint, lit by neon you never see: its light flickers on the bricks, paint drops slide off the drips, the wet ground glints, and now and then a passing car's headlight sweeps across. Acid yellow-green accent, magenta for pro; errors stay red, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -120,6 +118,54 @@ Light and dark. Raked sand rings around mossy stones at the corners and long par
 |---|---|---|
 | ![Zen garden, light, on desktop](docs/screenshots/zen-garden-light-desktop.png) | ![Zen garden, dark, on desktop](docs/screenshots/zen-garden-dark-desktop.png) | <img src="docs/screenshots/zen-garden-light-mobile.png" alt="Zen garden on a phone" width="200"> |
 
+### `ascii-tide`
+
+Dark only. Everything is a glyph: a sea of drifting characters rolling toward you in perspective, a shaded ASCII moon with a shimmering path on the water, clouds of `~` and `-` and twinkling `+` and `*` stars. Every so often a star falls into the sea and rings of `o` open where it lands, and a faint scan line sweeps down. Mint accent on ink-blue. Respects *reduce motion*.
+
+| Desktop | Phone |
+|---|---|
+| ![ASCII tide on desktop](docs/screenshots/ascii-tide-dark-desktop.png) | <img src="docs/screenshots/ascii-tide-dark-mobile.png" alt="ASCII tide on a phone" width="260"> |
+
+### `koi-script`
+
+Light and dark. A koi pond seen from above as a mosaic where every tile carries a glyph: koi of ideogram tiles glide past lily pads and pebble beds, their tails flicking between frames while light ripples across the water. By day the water is sunlit jade, by night moonlit ink-teal with lantern-warm koi; now and then a ring of ripples spreads from a lily pad, or a koi flicks and turns. Respects *reduce motion*.
+
+| Light | Dark | Phone |
+|---|---|---|
+| ![Koi script, light, on desktop](docs/screenshots/koi-script-light-desktop.png) | ![Koi script, dark, on desktop](docs/screenshots/koi-script-dark-desktop.png) | <img src="docs/screenshots/koi-script-light-mobile.png" alt="Koi script on a phone" width="200"> |
+
+### `abyssal`
+
+Dark only. The deep sea at night, drawn in block elements and box-drawing glyphs: a jellyfish pulses with its tentacles trailing, a siphonophore chain sways, and an anglerfish hovers behind the glow of its lure while motes of light rise over a faint sonar grid. Now and then a ripple of light runs along the chain, a shoal of tiny glyph fish darts past, or the lure blinks. Respects *reduce motion*.
+
+| Desktop | Phone |
+|---|---|
+| ![Abyssal on desktop](docs/screenshots/abyssal-dark-desktop.png) | <img src="docs/screenshots/abyssal-dark-mobile.png" alt="Abyssal on a phone" width="260"> |
+
+### `mosaic-sky`
+
+Dark only. A night sky set like an old broadcast teletext page: cloud banks of quadrant-block mosaics drift at their own speeds under a cratered mosaic moon, stars blink between two colours and a distant city keeps a few windows lit. Now and then a refresh line wipes down the page, a stepped shooting star crosses, or a cloud edge changes colour. Respects *reduce motion*.
+
+| Desktop | Phone |
+|---|---|
+| ![Mosaic sky on desktop](docs/screenshots/mosaic-sky-dark-desktop.png) | <img src="docs/screenshots/mosaic-sky-dark-mobile.png" alt="Mosaic sky on a phone" width="260"> |
+
+### `dot-matrix`
+
+Dark only. A motorway information panel at night: a black field of faint amber LED dots, lit only in the top and bottom bands with a red ring, chevrons that light in sequence, a hazard triangle with alternating lanterns, lane signals and a slow ticker of abstract signs, the middle left dark for the words. Now and then a scan row refreshes the panel, a chevron train runs across, or a cluster of dots pulses. Respects *reduce motion*.
+
+| Desktop | Phone |
+|---|---|
+| ![Dot matrix on desktop](docs/screenshots/dot-matrix-dark-desktop.png) | <img src="docs/screenshots/dot-matrix-dark-mobile.png" alt="Dot matrix on a phone" width="260"> |
+
+### `kawaii`
+
+Light and dark. A strawberry-milk sky with a smiling sun by day, a lavender-indigo night with a sleeping crescent moon after dark: puffy clouds wear tiny kaomoji faces and blink now and then, glyph stars twinkle, and a mochi bunny on a mint hill sends up little hearts. Once in a while a ✧ shoots across the sky, a cloud squishes or the bunny hops. Respects *reduce motion*.
+
+| Light | Dark | Phone |
+|---|---|---|
+| ![Kawaii, light, on desktop](docs/screenshots/kawaii-light-desktop.png) | ![Kawaii, dark, on desktop](docs/screenshots/kawaii-dark-desktop.png) | <img src="docs/screenshots/kawaii-light-mobile.png" alt="Kawaii on a phone" width="200"> |
+
 *The screenshots are mock-ups drawn by `tools/preview.mjs`: the look's real colors and scene,
 with an invented conversation.*
 
@@ -133,6 +179,8 @@ with an invented conversation.*
      `preserveAspectRatio="xMidYMid slice"`, animated by CSS in its own `<style>` only, under
      131,072 characters, with nothing important in the middle (the words) or at the foot (the
      prompt box).
+     The scenes here are generated by the scripts in `tools/scenes/` (seeded, so a run without
+     changes writes the same file): edit the script, run it with `node`, never the `scene.js`.
    - `index.js`: a default export shaped like `Look` in `hooks/looks/types.d.ts`.
 2. Add it to `LOOKS` in `hooks/looks/index.js`.
 3. Check it (and see [AGENTS.md](AGENTS.md) for the gitleaks checks before a commit):

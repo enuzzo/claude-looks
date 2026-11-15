@@ -10,6 +10,12 @@ import steampunk from './steampunk/index.js'
 import solarpunk from './solarpunk/index.js'
 import atomicAge from './atomic-age/index.js'
 import zenGarden from './zen-garden/index.js'
+import asciiTide from './ascii-tide/index.js'
+import koiScript from './koi-script/index.js'
+import abyssal from './abyssal/index.js'
+import mosaicSky from './mosaic-sky/index.js'
+import dotMatrix from './dot-matrix/index.js'
+import kawaii from './kawaii/index.js'
 
 /** @type {readonly import('./types').Look[]} */
 export const LOOKS = [
@@ -23,6 +29,12 @@ export const LOOKS = [
   solarpunk,
   atomicAge,
   zenGarden,
+  asciiTide,
+  koiScript,
+  abyssal,
+  mosaicSky,
+  dotMatrix,
+  kawaii,
 ]
 
 export const DEFAULT_LOOK = 'synthwave-sunset'

@@ -102,9 +102,10 @@ pre{background:${p.s1};border:1px solid ${hexA(p.t3, 0.15)};border-radius:10px;p
 </div>`
 }
 
-function shoot(html, png, [w, h, scale]) {
-  execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
-    `--window-size=${w},${h}`, `--screenshot=${png}`, '--virtual-time-budget=1500', `file://${html}`], { stdio: 'ignore' })
+// `mode` sets prefers-color-scheme, so a scene that follows the app's mode is shot in the right one.
+function shoot(html, png, [w, h, scale], mode) {
+  execFileSync(CHROME, ['--headless=new', `--blink-settings=preferredColorScheme=${mode === 'dark' ? 0 : 1}`, '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
+    `--window-size=${w},${h}`, `--screenshot=${png}`, '--virtual-time-budget=1500', `file://${html}`], { stdio: 'ignore', timeout: 90000 })
   console.log(png.replace(ROOT + '/', ''))
 }
 
@@ -116,7 +117,7 @@ for (const look of looks) {
   if (look.scene !== undefined) {
     const html = join(tmp, `${look.id}-scene.html`)
     writeFileSync(html, `<!doctype html><style>*{margin:0}html,body{width:1440px;height:600px;overflow:hidden}svg{width:100%;height:100%;display:block}</style>${look.scene.source}`)
-    shoot(html, join(OUT, `${look.id}-scene.png`), [1440, 600, 1])
+    shoot(html, join(OUT, `${look.id}-scene.png`), [1440, 600, 1], look.args.colors.inputs.light ? 'light' : 'dark')
   }
   for (const mode of ['dark', 'light']) {
     if (look.args.colors.inputs[mode] === undefined) continue
@@ -124,7 +125,7 @@ for (const look of looks) {
       const html = join(tmp, `${look.id}-${mode}-${size}.html`)
       const png = join(OUT, `${look.id}-${mode}-${size}.png`)
       writeFileSync(html, page(look, mode, size, w))
-      shoot(html, png, [w, h, scale])
+      shoot(html, png, [w, h, scale], mode)
     }
   }
 }

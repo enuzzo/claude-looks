@@ -16,6 +16,8 @@ If either reports a finding, stop: do not commit or push, and tell the owner wha
 
 ## Other rules
 
+- After every push, refresh the local install so the owner can try it in a new session:
+  `claude plugin marketplace update claude-looks`, then `claude plugin update looks@claude-looks`.
 - Commit and push only when the owner asks. Leave the git author email as it is (the GitHub noreply address).
 - Code, comments, commits and the README are in English.
 - Before a commit, `claude plugin validate .claude-plugin/plugin.json` and `claude plugin test .` must pass, and so
