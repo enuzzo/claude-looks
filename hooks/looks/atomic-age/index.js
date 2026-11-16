@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'atomic-age', glass: { blur: 14, opacity: 0.82 } },
+    backdrop: { id: 'atomic-age', glass: { blur: 14, opacity: 0.82 } },
   },
   scene: {
     source: SCENE,

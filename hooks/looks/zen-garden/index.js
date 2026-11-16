@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'zen-garden', glass: { blur: 14, opacity: 0.84 } },
+    backdrop: { id: 'zen-garden', glass: { blur: 14, opacity: 0.84 } },
   },
   scene: {
     source: SCENE,

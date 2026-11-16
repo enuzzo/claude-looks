@@ -3,7 +3,7 @@
 // in the look's colors over its scene, desktop and phone, with headless Chrome.
 // Usage: node tools/preview.mjs [look-id ...]
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -42,7 +42,7 @@ function hexA(hex, a) {
 function page(look, mode, size, width) {
   const p = palette(look, mode)
   const bd = look.args.backdrop
-  const glass = bd && 'scene' in bd ? bd.glass ?? {} : false
+  const glass = bd && ('id' in bd || 'scene' in bd) ? bd.glass ?? {} : false
   const veil = glass ? hexA(glass.tint ?? p.s1, glass.opacity ?? 0.6) : p.s1
   const blur = glass ? `blur(${glass.blur ?? 16}px)` : 'none'
   const scene = look.scene?.source ?? ''
@@ -103,9 +103,16 @@ pre{background:${p.s1};border:1px solid ${hexA(p.t3, 0.15)};border-radius:10px;p
 }
 
 // `mode` sets prefers-color-scheme, so a scene that follows the app's mode is shot in the right one.
+// A fresh profile per shot, with the mock keychain (no keychain prompt), removed after: the
+// --screenshot run exits Chrome on its own, so nothing is killed and nothing is left behind.
 function shoot(html, png, [w, h, scale], mode) {
-  execFileSync(CHROME, ['--headless=new', `--blink-settings=preferredColorScheme=${mode === 'dark' ? 0 : 1}`, '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
-    `--window-size=${w},${h}`, `--screenshot=${png}`, '--virtual-time-budget=1500', `file://${html}`], { stdio: 'ignore', timeout: 90000 })
+  const profile = mkdtempSync(join(tmpdir(), 'looks-chrome-'))
+  try {
+    execFileSync(CHROME, ['--headless=new', `--user-data-dir=${profile}`, '--use-mock-keychain', `--blink-settings=preferredColorScheme=${mode === 'dark' ? 0 : 1}`, '--disable-gpu', '--hide-scrollbars', `--force-device-scale-factor=${scale}`,
+      `--window-size=${w},${h}`, `--screenshot=${png}`, '--virtual-time-budget=1500', `file://${html}`], { stdio: 'ignore', timeout: 90000 })
+  } finally {
+    rmSync(profile, { recursive: true, force: true })
+  }
   console.log(png.replace(ROOT + '/', ''))
 }
 

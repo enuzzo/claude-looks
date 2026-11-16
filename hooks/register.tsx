@@ -1,5 +1,5 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface, Register } from 'claude-code'
+import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { DEFAULT_LOOK, LOOKS } from './looks/index.js'
 import { previewCard } from './preview-card.js'
@@ -20,6 +20,18 @@ const isOurs = (plugin: string) => plugin === 'looks' || plugin.startsWith('look
 
 // Where no theme noun is offered (the plugin test kit), a look is only remembered.
 const NO_THEME = { isDrawn: false as const, reason: 'this host draws no looks' }
+
+const messageOf = (error: unknown) => (error instanceof Error ? error.message : String(error))
+
+// Builds before the backdrop was named by `id` took `scene` instead, and refuse
+// an attribute they do not know: the same theme, spelled the old way.
+function withSceneKey(args: ThemeSetArgs) {
+  if (args.backdrop === undefined) {
+    return undefined
+  }
+  const { id, ...rest } = args.backdrop
+  return { ...args, backdrop: { ...rest, scene: id } } as unknown as ThemeSetArgs
+}
 
 async function clearLook($: EngineInterface) {
   try {
@@ -45,8 +57,20 @@ async function apply($: EngineInterface, id: string) {
 
   try {
     return await $.theme.set(look.args)
-  } catch {
-    return NO_THEME
+  } catch (error) {
+    if (/no implementation/.test(messageOf(error))) {
+      return NO_THEME
+    }
+    const legacy = withSceneKey(look.args)
+
+    if (legacy !== undefined) {
+      try {
+        return await $.theme.set(legacy)
+      } catch {
+        // Not the old spelling either: report the first refusal.
+      }
+    }
+    return { isDrawn: false as const, reason: `the app refused the theme: ${messageOf(error)}` }
   }
 }
 
@@ -156,7 +180,10 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Backdrop' }, ($, e, next) => {
-    const scene = LOOKS.find(look => look.args.backdrop !== undefined && 'scene' in look.args.backdrop && look.args.backdrop.scene === e.props.scene)?.scene
+    // Older builds name the backdrop `scene`, newer ones `id`.
+    const props = e.props as { id?: string; scene?: string }
+    const name = props.id ?? props.scene
+    const scene = LOOKS.find(look => look.args.backdrop?.id === name)?.scene
 
     if ((e.surface !== 'desktop' && e.surface !== 'mobile') || !isOurs(e.props.plugin) || scene === undefined) {
       return next(e)

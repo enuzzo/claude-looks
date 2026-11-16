@@ -35,12 +35,19 @@ A fresh install wears `synthwave-sunset`.
 > The moving scenes are drawn by the app's backdrop layer, which the desktop app is still rolling
 > out: where it is not on yet, a look brings its colors and no scene. Nothing to change in the
 > plugin; the scene appears once the app draws backdrops.
+>
+> If `/look <name>` answers *nothing draws here*, the reason in brackets comes from the app.
+> *this host draws no looks* means the surface has no themes (the terminal, an editor).
+> *the app refused the theme* means your Claude Code and this plugin disagree on the theme's
+> shape: update both (`/plugin` → marketplaces → update, and the app itself), then start a new
+> session. Tested with Claude Code 2.1.321 and 2.1.325; a build that names the backdrop `scene`
+> rather than `id` is sent that name.
 
 ## The looks
 
 ### `synthwave-sunset`
 
-Dark only. A striped sun sinking on the left, its bands slowly drifting down, wireframe mountains on the right, a sky of twinkling ASCII stars, and a neon grid rolling toward you. Every so often something small happens: a light runs down the grid, a spark traces the ridge, a star shoots by, the horizon flares. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
+Dark only. A sun made of type, denser toward its heart, sinking behind slow bands on the left; a ridge of `/` and `\` glyphs dusted with dots on the right; a sky of ASCII stars breathing in and out, and a neon grid rolling toward you, slowly. Once in a long while a light runs down the grid, a spark traces the ridge or a star falls. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -136,7 +143,7 @@ Light and dark. A koi pond seen from above as a mosaic where every tile carries 
 
 ### `abyssal`
 
-Dark only. The deep sea at night, drawn in block elements and box-drawing glyphs: a jellyfish pulses with its tentacles trailing, a siphonophore chain sways, and an anglerfish hovers behind the glow of its lure while motes of light rise over a faint sonar grid. Now and then a ripple of light runs along the chain, a shoal of tiny glyph fish darts past, or the lure blinks. Respects *reduce motion*.
+Dark only. The deep sea, almost black, breathing with two slow glows of teal and violet, plankton drifting down in specks of type. In the corner a manta glides on a lazy orbit, its wings bending as it flies, and two moon jellies pulse at the edge; once every few minutes a sea turtle rises past in the margin. The animals are real 3D solids, raymarched into ASCII when the scene is built (`tools/scenes/ascii3d.mjs`), one frame per step of their swim, and the frames dissolve into one another. Sea-glass accent on deep teal. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|

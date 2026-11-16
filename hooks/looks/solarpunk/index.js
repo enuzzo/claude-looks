@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'solarpunk', glass: { blur: 14, opacity: 0.8 } },
+    backdrop: { id: 'solarpunk', glass: { blur: 14, opacity: 0.8 } },
   },
   scene: {
     source: SCENE,

@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'cyberpunk', glass: { blur: 16, tint: '#081217', opacity: 0.55 } },
+    backdrop: { id: 'cyberpunk', glass: { blur: 16, tint: '#081217', opacity: 0.55 } },
   },
   scene: {
     source: SCENE,

@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'home-computer', glass: { blur: 14, tint: '#1e1752', opacity: 0.66 } },
+    backdrop: { id: 'home-computer', glass: { blur: 14, tint: '#1e1752', opacity: 0.66 } },
   },
   scene: {
     source: SCENE,

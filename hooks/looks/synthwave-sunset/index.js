@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'synthwave-sunset', glass: { blur: 18, tint: '#140a24', opacity: 0.62 } },
+    backdrop: { id: 'synthwave-sunset', glass: { blur: 6, tint: '#140a24', opacity: 0.5 } },
   },
   scene: {
     source: SCENE,

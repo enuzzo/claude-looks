@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'mosaic-sky', glass: { blur: 3, tint: '#070a2a', opacity: 0.76 } },
+    backdrop: { id: 'mosaic-sky', glass: { blur: 3, tint: '#070a2a', opacity: 0.76 } },
   },
   scene: {
     source: SCENE,

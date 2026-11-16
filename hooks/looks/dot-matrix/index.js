@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'dot-matrix', glass: { blur: 3, tint: '#0b0806', opacity: 0.76 } },
+    backdrop: { id: 'dot-matrix', glass: { blur: 3, tint: '#0b0806', opacity: 0.76 } },
   },
   scene: {
     source: SCENE,

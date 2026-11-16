@@ -9,7 +9,7 @@ export default {
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'kawaii', glass: { blur: 4, opacity: 0.78 } },
+    backdrop: { id: 'kawaii', glass: { blur: 4, opacity: 0.78 } },
   },
   scene: {
     source: SCENE,

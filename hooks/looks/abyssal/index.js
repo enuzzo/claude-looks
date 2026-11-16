@@ -5,14 +5,14 @@ import { SCENE } from './scene.js'
 export default {
   id: 'abyssal',
   label: 'Abyssal',
-  description: 'The deep sea in block glyphs: a pulsing jellyfish, an anglerfish and its lure, rising motes of light.',
+  description: 'Slow teal water in ASCII: a raymarched turtle, manta and humpback, moon jellies, a drifting school of glyph fish.',
   problems,
   args: {
     colors: theme,
-    backdrop: { scene: 'abyssal', glass: { blur: 3, tint: '#070a1a', opacity: 0.6 } },
+    backdrop: { id: 'abyssal', glass: { blur: 6, tint: '#041820', opacity: 0.34 } },
   },
   scene: {
     source: SCENE,
-    alt: 'A dark deep sea drawn in block and box-drawing glyphs: a pulsing jellyfish, a glowing siphonophore chain and an anglerfish with a lit lure',
+    alt: 'Dark teal open water under faint shafts of light, its animals made of ASCII characters: a green turtle, a manta ray, a humpback and calf far off, moon jellies and a school of tiny glyph fish',
   },
 }
