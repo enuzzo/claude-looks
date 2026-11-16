@@ -1,7 +1,8 @@
-// Writes a scene out in full: each <use href="#id"/> becomes a <g> holding a copy of #id, and a
-// definition nothing points at any more is dropped. Used by abyssal. It also gives a scene's true
-// drawing cost, the one the budget in docs/DIRECTION.md counts: what the app draws once every <use>
-// is expanded.
+// The desktop app draws nothing a <use> points at (2026-11-16: the koi and the rain columns, both
+// <use>, never showed; abyssal, written out, did). So every scene is written out in full: each
+// <use href="#id"/> becomes a <g> holding a copy of #id, and a definition nothing points at any more
+// is dropped. A copy has no id, so style it by class, never by #id. The written-out scene is also
+// what the drawing budget in docs/DIRECTION.md counts.
 
 // every element with an id, by id: its tag, the rest of its open tag, what it holds, and where it sits
 function definitions(svg) {

@@ -43,6 +43,8 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    apart: at 9,500 glyphs and 50k characters with every `<use>` expanded it ran, at 12,900 glyphs and
    61k it stopped). Keep a scene, `<use>` expanded (`tools/scenes/inline-uses.mjs`), under about
    7,000 glyphs and 50k characters: fewer flipbook frames, fewer copies, a still frame for a far subject.
+10. **No `<use>`.** The desktop app draws nothing a `<use>` points at. Generators write the scene out
+   in full with `tools/scenes/inline-uses.mjs`; a copy has no id, so style by class, never by `#id`.
 
 ## Making one
 

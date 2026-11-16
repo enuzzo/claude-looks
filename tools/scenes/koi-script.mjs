@@ -16,6 +16,7 @@
 //
 // The same pond is written twice: at night (SCENE) and by day (SCENE_DAY), under slow caustics.
 import { writeFileSync } from 'node:fs'
+import { inlineUses } from './inline-uses.mjs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -136,7 +137,7 @@ const where = (i, t) => {
 
 // ── a petal: a few glyphs set as a small leaning blade
 const PETAL_FS = 9
-const PETAL = `<g id="petal" style="font-size:${PETAL_FS}px" transform="translate(-8 -7)"><text x="${f(0.602 * PETAL_FS)}" y="0">/')</text><text x="0" y="${f(0.8 * PETAL_FS)}">(,/</text></g>`
+const PETAL = `<g id="petal" class="pt" style="font-size:${PETAL_FS}px" transform="translate(-8 -7)"><text x="${f(0.602 * PETAL_FS)}" y="0">/')</text><text x="0" y="${f(0.8 * PETAL_FS)}">(,/</text></g>`
 
 // ── rings: circles of middle dots on a fine grid, each a little wider and a little sparser than the last
 const RING_FS = 6
@@ -210,7 +211,7 @@ const CAUSTICS = (() => {
     }
     fr.push(row)
   }
-  return `<g id="caustics" style="font-size:${CAUSTIC_FS}px" transform="translate(${x0} ${y0})">${rows(fr, cw, ch)}</g>`
+  return `<g id="caustics" class="cs" style="font-size:${CAUSTIC_FS}px" transform="translate(${x0} ${y0})">${rows(fr, cw, ch)}</g>`
 })()
 
 // ── the two ponds. A coat is the colour of the white (a gradient from head to tail on the near koi), of
@@ -256,8 +257,8 @@ ${base}
 .fr{opacity:0}.fr.f0{opacity:1}
 .lap{animation:lap 144s linear infinite}
 .rg{opacity:0;fill:${L.ring}}
-#petal{fill:url(#pt)}.petal{opacity:0;animation:petal 233s linear infinite 55s}
-${L.caustics ? `#caustics{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s ease-in-out infinite}
+.pt{fill:url(#pt)}.petal{opacity:0;animation:petal 233s linear infinite 55s}
+${L.caustics ? `.cs{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s ease-in-out infinite}
 @keyframes cA{0%,100%{opacity:.3;transform:translate(0,0)}50%{opacity:.12;transform:translate(-13px,8px)}}
 ` : ''}pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s linear infinite}
 .glowA{--x:-50px;--y:-34px;animation:breathe 61s ease-in-out infinite}.glowB{--x:80px;--y:60px;animation:breathe 97s ease-in-out infinite -30s}
@@ -301,7 +302,9 @@ ${ripples}
   return { svg, poster }
 }
 
-const night = scene('night'), day = scene('day')
+// the app draws nothing a <use> points at: every scene is written out in full
+const written = ({ svg, poster }) => ({ svg: inlineUses(svg), poster: inlineUses(poster) })
+const night = written(scene('night')), day = written(scene('day'))
 console.log(`koi-script: night ${night.svg.length} characters, day ${day.svg.length}, poster ${night.poster.length}`)
 if (process.env.SIZES) console.log({ frames: BOOK.frames.join('').length, rings: RINGS.length, caustics: CAUSTICS.length, FS, G, RADII, C1, C2, C3, EYE })
 if (night.poster.length >= 12000) throw new Error('poster over 12,000 characters')
