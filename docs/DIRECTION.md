@@ -45,6 +45,8 @@ ASCII pines). The middle, where the conversation sits, stays clear.
 - Each look also exports a `poster`: a still, small SVG (`<svg viewBox=... width="320" height="180">`)
   of the scene's composition, drawn by `/look preview`. The preview never embeds a whole scene: sixteen
   animated scenes in one message is more than the app will draw.
+- A look may carry a second dress for daylight (`day` in its `index.js`: its own palette and scene, from
+  the same generator and within the same budget), worn by the local hour when the look is put on.
 - Check a scene in motion, not only in stills: render frames at 30 fps over 10 s and watch them.
 - Check it behind the app's glass with `node tools/preview.mjs <id>`, desktop and phone.
 
@@ -58,7 +60,7 @@ until they meet this standard.
 | `abyssal` | **done** (2026-11-16) | a raymarched ASCII manta gliding in the bottom-right corner; jellies at the edge; a rare turtle |
 | `synthwave-sunset` | **done** (2026-11-16) | a sun made of type, a glyph ridge, a slow neon grid; rare sparks |
 | `ascii-tide` | **done** (2026-11-16) | a moon ray-cast into glyphs in the top-right; a perspective sea of type with its light on the water; rare falling stars |
-| `koi-script` | withdrawn to `drafts/` | |
+| `koi-script` | **done** (2026-11-16) | three raymarched ASCII koi, sized and placed by the golden ratio, circling in the bottom-right corner; rings of dots where one brushes the surface; a rare petal; night water, and jade water by day |
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
 | `digital-rain` | **done** (2026-11-16) | a slow curtain of glyph rain at the right edge, three depths; a rare lone column in the empty field |

@@ -117,7 +117,9 @@ function shoot(html, png, [w, h, scale], mode) {
 }
 
 const wanted = process.argv.slice(2)
-const looks = wanted.length ? LOOKS.filter(l => wanted.includes(l.id)) : LOOKS
+// a look with a daylight dress is shot twice: as itself, and as `<id>-day`
+const looks = (wanted.length ? LOOKS.filter(l => wanted.includes(l.id)) : LOOKS)
+  .flatMap(l => (l.day ? [l, { ...l, id: `${l.id}-day`, args: l.day.args, scene: l.day.scene }] : [l]))
 const tmp = mkdtempSync(join(tmpdir(), 'looks-'))
 
 for (const look of looks) {

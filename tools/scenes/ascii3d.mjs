@@ -27,10 +27,12 @@ export const rot = (a, b, t) => [a * Math.cos(t) - b * Math.sin(t), a * Math.sin
 /**
  * Render one frame. sdf(x, y, z) -> distance; tex(x, y, z, nx, ny, nz) -> brightness multiplier (optional).
  * view: { cols, rows, dx, aspect, elev (rad), cx, cy } — cell size dx in world units, rows are aspect× taller.
- * Returns rows of [char, level 0..1].
+ * view.outline: false leaves the silhouette to the shading alone.
+ * view.tag(x, y, z) (optional) labels each hit, e.g. with a colour class; it is kept as the cell's fourth entry.
+ * Returns rows of [char, level 0..1, depth, tag].
  */
 export function render(sdf, view, tex) {
-  const { cols, rows, dx, aspect = 1.83, elev = 0, cx = 0, cy = 0, light = [0.35, 1, 0.45], ramp = RAMP } = view
+  const { cols, rows, dx, aspect = 1.83, elev = 0, cx = 0, cy = 0, light = [0.35, 1, 0.45], ramp = RAMP, tag, outline = true } = view
   const ce = Math.cos(elev), se = Math.sin(elev)
   // camera looks along d, with up u and right +x
   const d = [0, -se, -ce], u = [0, ce, -se]
@@ -65,11 +67,11 @@ export function render(sdf, view, tex) {
       let v = 0.1 + 0.62 * diff + 0.28 * rim + 0.5 * spec
       if (tex) v *= tex(px, py, pz, nx, ny, nz)
       v = clamp(v, 0.06, 1)
-      row.push([ramp[Math.min(ramp.length - 1, 1 + Math.floor(v * (ramp.length - 1)))], v, t])
+      row.push([ramp[Math.min(ramp.length - 1, 1 + Math.floor(v * (ramp.length - 1)))], v, t, tag ? tag(px, py, pz) : undefined])
     }
     out.push(row)
   }
-  return edges(out)
+  return outline ? edges(out) : out
 }
 
 // Outline the silhouette (and sharp depth steps) with glyphs that follow its direction, so a shape
@@ -95,7 +97,7 @@ function edges(img) {
     else if (a < 67.5) ch = '/'
     else if (a < 112.5) ch = gy > 0 ? '_' : '-'
     else ch = '\\'
-    return [ch, Math.max(cell[1], 0.55), z]
+    return [ch, Math.max(cell[1], 0.55), z, cell[3]]
   }))
 }
 

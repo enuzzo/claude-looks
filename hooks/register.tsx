@@ -2,6 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register, ThemeSetArgs } from 'claude-code'
 
 import { DEFAULT_LOOK, LOOKS } from './looks/index.js'
+import type { Look, LookScene } from './looks/types'
 import { previewCard } from './preview-card.js'
 
 // The chosen look lives in the plugin's store, so it survives restarts and
@@ -41,6 +42,40 @@ async function clearLook($: EngineInterface) {
   }
 }
 
+// The local hour, by the engine's clock (the plugin's own where the host answers none).
+async function localHour($: EngineInterface) {
+  try {
+    return new Date(await $.clock.now()).getHours()
+  } catch {
+    return new Date().getHours()
+  }
+}
+
+// A look with a daylight dress wears it between its hours; the choice is made when
+// the look is put on, at session start or by /look, and stands until the next.
+async function argsFor($: EngineInterface, look: Look) {
+  if (look.day === undefined) {
+    return look.args
+  }
+  const hour = await localHour($)
+  const [from, to] = look.day.hours
+
+  return hour >= from && hour < to ? look.day.args : look.args
+}
+
+// Every scene by its backdrop's id: each look's own, and its daylight one.
+const SCENES = new Map<string, LookScene>()
+
+for (const look of LOOKS) {
+  for (const dress of [look, look.day]) {
+    const backdropId = (dress?.args.backdrop as { id?: string } | undefined)?.id
+
+    if (dress?.scene !== undefined && backdropId !== undefined) {
+      SCENES.set(backdropId, dress.scene)
+    }
+  }
+}
+
 async function apply($: EngineInterface, id: string) {
   const look = findLook(id)
 
@@ -48,6 +83,7 @@ async function apply($: EngineInterface, id: string) {
     await clearLook($)
     return { isDrawn: false as const, reason: 'off' }
   }
+  const args = await argsFor($, look)
 
   const unpainted = look.problems.find(line => line.startsWith("Desktop won't paint"))
 
@@ -56,12 +92,12 @@ async function apply($: EngineInterface, id: string) {
   }
 
   try {
-    return await $.theme.set(look.args)
+    return await $.theme.set(args)
   } catch (error) {
     if (/no implementation/.test(messageOf(error))) {
       return NO_THEME
     }
-    const legacy = withSceneKey(look.args)
+    const legacy = withSceneKey(args)
 
     if (legacy !== undefined) {
       try {
@@ -183,7 +219,7 @@ export const register: Register = on => {
     // Older builds name the backdrop `scene`, newer ones `id`.
     const props = e.props as { id?: string; scene?: string }
     const name = props.id ?? props.scene
-    const scene = LOOKS.find(look => look.args.backdrop?.id === name)?.scene
+    const scene = name === undefined ? undefined : SCENES.get(name)
 
     if ((e.surface !== 'desktop' && e.surface !== 'mobile') || !isOurs(e.props.plugin) || scene === undefined) {
       return next(e)

@@ -85,6 +85,14 @@ Dark only. The deep sea, almost black, breathing with two slow glows of teal and
 |---|---|
 | ![Abyssal on desktop](docs/screenshots/abyssal-dark-desktop.png) | <img src="docs/screenshots/abyssal-dark-mobile.png" alt="Abyssal on a phone" width="260"> |
 
+### `koi-script`
+
+Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi, bone white with vermilion patches, circle slowly in the bottom-right corner, each on its own depth: the near one large and bright, the others smaller, dimmer and closer to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`): its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, and the frames dissolve into one another. Where the near koi brushes the surface, rings of dots open; every few minutes a petal comes down in the middle of it all. The layout is the golden ratio throughout: from the frame's golden point a golden spiral winds into the corner, the koi swim three of its arcs, so circles and koi shrink by φ each time, and the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade under a faint net of dappled light; after dusk it is ink-teal going to indigo (the hour is read when the look is put on: at session start, or by `/look koi-script`). Vermilion accent. Respects *reduce motion*.
+
+| Desktop, night | Desktop, day | Phone |
+|---|---|---|
+| ![Koi script at night on desktop](docs/screenshots/koi-script-dark-desktop.png) | ![Koi script by day on desktop](docs/screenshots/koi-script-day-dark-desktop.png) | <img src="docs/screenshots/koi-script-dark-mobile.png" alt="Koi script on a phone" width="260"> |
+
 ## Make a look
 
 Read [docs/DIRECTION.md](docs/DIRECTION.md) first: what a look here is made of, how slow it moves, and
@@ -102,7 +110,9 @@ the register of which looks are reworked.
      changes writes the same file): edit the script, run it with `node`, never the `scene.js`.
      The script also exports a `POSTER` from `scene.js`: a still SVG of the scene, 320 by 180 and
      under 12,000 characters, which `/look preview` draws instead of the live scene.
-   - `index.js`: a default export shaped like `Look` in `hooks/looks/types.d.ts`.
+   - `index.js`: a default export shaped like `Look` in `hooks/looks/types.d.ts`. A look that follows the
+     time of day adds a `day` dress (its own `args` and `scene`, and the local `hours` it is worn
+     between), as `koi-script` does; `tools/preview.mjs` shoots it as `<name>-day`.
 2. Add it to `LOOKS` in `hooks/looks/index.js`.
 3. Check it (and see [AGENTS.md](AGENTS.md) for the gitleaks checks before a commit):
    ```bash

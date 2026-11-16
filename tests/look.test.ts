@@ -159,3 +159,31 @@ test('the backdrop draws every look that has a scene', async ($, on) => {
     }
   }
 })
+
+// A look with a daylight dress picks it by the local hour, each time it is put on.
+test('koi-script wears jade water by day and night water after dusk', async ($, on) => {
+  engine(on, 'koi-script')
+  let hour = 12
+  const worn: unknown[] = []
+  on('clock.now', () => ({ value: new Date(2026, 10, 16, hour).getTime() }))
+  on('theme.set', (_, e) => {
+    // builds name the backdrop `id` or `scene`
+    const backdrop = (e as unknown as { backdrop?: { id?: string; scene?: string } }).backdrop ?? {}
+    worn.push(backdrop.id ?? backdrop.scene)
+    return { value: { isDrawn: true, requestId: 'backdrop' } }
+  })
+  on('command.run', () => ({ text: 'engine' }))
+
+  await $.session.start(START)
+  hour = 22
+  await $.command.run(look('koi-script'))
+  hour = 7
+  await $.command.run(look('koi-script'))
+  expect(worn).toEqual(['koi-script-day', 'koi-script', 'koi-script-day'])
+
+  for (const id of ['koi-script', 'koi-script-day']) {
+    const ui = await $.ui.mount(BACKDROP(id, 'looks', 'desktop'))
+    expect((await ui.findAll({ type: 'Svg' })).length).toBe(1)
+    await ui.unmount()
+  }
+})

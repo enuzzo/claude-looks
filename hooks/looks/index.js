@@ -5,6 +5,7 @@ import homeComputer from './home-computer/index.js'
 import digitalRain from './digital-rain/index.js'
 import asciiTide from './ascii-tide/index.js'
 import abyssal from './abyssal/index.js'
+import koiScript from './koi-script/index.js'
 
 /** @type {readonly import('./types').Look[]} */
 export const LOOKS = [
@@ -13,6 +14,7 @@ export const LOOKS = [
   digitalRain,
   asciiTide,
   abyssal,
+  koiScript,
 ]
 
 export const DEFAULT_LOOK = 'synthwave-sunset'
