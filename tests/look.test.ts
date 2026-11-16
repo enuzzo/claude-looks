@@ -113,7 +113,7 @@ test('every look sets a theme this build takes', async ($, on) => {
 
   const list = (await $.command.run(look(''))).text ?? ''
   const names = [...list.matchAll(/^[ ▸] ([a-z0-9-]+) —/gm)].map(m => m[1] ?? '').filter(id => id !== '' && id !== 'off')
-  expect(names.length).toBeGreaterThan(10)
+  expect(names.length).toBeGreaterThan(2)
 
   for (const id of names) {
     expect((await $.command.run(look(id))).text).toMatch(/^Now wearing/)

@@ -1,5 +1,7 @@
 import { problems, theme } from './palette.js'
-import { SCENE } from './scene.js'
+import * as SCENE_MODULE from './scene.js'
+
+const { SCENE } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
@@ -13,6 +15,7 @@ export default {
   },
   scene: {
     source: SCENE,
+    poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
     alt: 'A striped synthwave sun setting behind mountains over a rolling neon grid',
   },
 }

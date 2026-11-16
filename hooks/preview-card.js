@@ -1,4 +1,4 @@
-// A small card for `/look preview`: the look's scene (or its page color) with a
+// A small card for `/look preview`: the look's poster (or its page color) with a
 // mock chat panel per mode in the look's own colors. Pure: takes a Look, returns
 // an SVG string the desktop and mobile apps draw with `Svg`.
 
@@ -57,9 +57,10 @@ export function previewCard(look) {
   const first = modes[0] ?? 'dark'
   const ground = colorsOf(inputs[first] ?? {}, first).s0
   const backdrop = look.args.backdrop
-  const glass = backdrop !== undefined && 'scene' in backdrop ? backdrop.glass : undefined
+  const glass = backdrop !== undefined && ('id' in backdrop || 'scene' in backdrop) ? /** @type {any} */ (backdrop).glass : undefined
   const opacity = glass ? Math.max(0.7, glass.opacity ?? 0.6) : 0.92
-  const scene = look.scene?.source ?? ''
+  // the still poster, never the live scene: sixteen animated scenes in one message is more than the app draws
+  const scene = look.scene?.poster ?? ''
   const gap = 10
   const width = modes.length > 1 ? (W - 24 - gap) / 2 : W - 24
   const panels = modes.map((mode, i) => panel(colorsOf(inputs[mode] ?? {}, mode), 12 + i * (width + gap), width, opacity)).join('')

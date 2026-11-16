@@ -9,5 +9,9 @@ export type Look = {
   /** The contrast lines `makeColors` returned for this look's palette. */
   problems: readonly string[]
   args: ThemeSetArgs
-  scene?: { source: string; alt: string }
+  /**
+   * The moving scene its backdrop names, and a still poster of it (a small SVG,
+   * under 12,000 characters) that `/look preview` draws in its place.
+   */
+  scene?: { source: string; alt: string; poster?: string }
 }

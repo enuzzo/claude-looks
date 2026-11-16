@@ -1,6 +1,6 @@
 import { makeColors } from '../../make-colors.js'
 
-// Moonlit sea drawn in glyphs: ink-blue grays with a teal cast, mint accent.
+// A night sea set in type: ink-indigo grays, moon-white text, the mint of a falling star as accent.
 export const { theme, problems } = makeColors({
   label: 'ASCII tide',
   only: 'dark',
@@ -8,13 +8,13 @@ export const { theme, problems } = makeColors({
   dark: {
     gray: {
       anchors: {
-        'surface-0': '#06121b',
-        'surface-1': '#0a1822',
-        'surface-2': '#0e1d28',
-        'surface-3': '#11212d',
-        'text-primary': '#e8fbf6',
-        'text-secondary': '#bfdcd6',
-        'text-muted': '#93b5b0',
+        'surface-0': '#070a17',
+        'surface-1': '#0d1122',
+        'surface-2': '#11162b',
+        'surface-3': '#161c35',
+        'text-primary': '#f0f4ff',
+        'text-secondary': '#ccd4ee',
+        'text-muted': '#a8b3d6',
       },
     },
     git: { added: '#9be86a', removed: '#ff6b7a', modified: '#ffc857', merged: '#9fa8ff' },

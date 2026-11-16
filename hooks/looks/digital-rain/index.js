@@ -1,18 +1,21 @@
 import { problems, theme } from './palette.js'
-import { SCENE } from './scene.js'
+import * as SCENE_MODULE from './scene.js'
+
+const { SCENE } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
   id: 'digital-rain',
   label: 'Digital rain',
-  description: 'Green glyphs raining down the edges of a black screen, bright green accents.',
+  description: 'A slow curtain of green glyph rain at the right edge of a dark screen, bright green accents.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'digital-rain', glass: { blur: 12, tint: '#050c07', opacity: 0.54 } },
+    backdrop: { id: 'digital-rain', glass: { blur: 3, tint: '#050c07', opacity: 0.3 } },
   },
   scene: {
     source: SCENE,
-    alt: 'Columns of green glyphs falling down the edges of a dark screen',
+    poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
+    alt: 'Slow drops of light falling down columns of green katakana along the right edge of a dark screen',
   },
 }

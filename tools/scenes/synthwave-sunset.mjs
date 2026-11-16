@@ -163,7 +163,19 @@ ${pulses}
 <line class="flare" x1="-2000" y1="${HY}" x2="3000" y2="${HY}" stroke="${HOT}" stroke-width="2.4" vector-effect="non-scaling-stroke"/>
 </svg>`
 
+// the poster: sky, the sun of type, the glyph ridge, a still grid; no stars or events
+const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" width="320" height="180">
+<style>text{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;dominant-baseline:central}.s text{font-size:9px;fill:url(#sunfillU)}.m text{font-size:10px;fill:${HOT}}</style>
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06021a"/><stop offset=".3" stop-color="#140834"/><stop offset=".5" stop-color="#2e0c55"/><stop offset=".6" stop-color="#6a1470"/><stop offset=".64" stop-color="#c2307e"/><stop offset=".641" stop-color="#12052a"/><stop offset="1" stop-color="#07021a"/></linearGradient>
+<linearGradient id="sunfillU" gradientUnits="userSpaceOnUse" x1="0" y1="${SY - SR}" x2="0" y2="${SY + SR}"><stop offset="0" stop-color="${SUN_TOP}"/><stop offset=".5" stop-color="#ff9a4a"/><stop offset="1" stop-color="${PINK}"/></linearGradient>
+<clipPath id="above"><rect x="-2000" y="-1000" width="5000" height="${HY + 1000}"/></clipPath></defs>
+<rect x="-2000" y="-1000" width="5000" height="3000" fill="url(#sky)"/>
+<g class="s" clip-path="url(#above)">${sunText}</g><g class="m" opacity=".85">${mtText}</g>
+<g stroke="${PINK}" stroke-opacity=".7" stroke-width="1.6">${hz.slice(0, hz.length)}${rad}</g>
+</svg>`.replace(/\n/g, '')
+if (poster.length >= 12000) throw new Error(`poster is ${poster.length} characters`)
+
 const out = join(ROOT, 'hooks/looks/synthwave-sunset/scene.js')
 writeFileSync(out, `// Generated: a striped sun setting on the left, wireframe mountains on the right,
-// ASCII stars, a rolling neon grid with now-and-then light pulses.\nexport const SCENE = ${JSON.stringify(svg)}\n`)
-console.log('synthwave-sunset', svg.length)
+// ASCII stars, a rolling neon grid with now-and-then light pulses.\nexport const SCENE = ${JSON.stringify(svg)}\nexport const POSTER = ${JSON.stringify(poster)}\n`)
+console.log('synthwave-sunset', svg.length, 'poster', poster.length)

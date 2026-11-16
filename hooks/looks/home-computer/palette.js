@@ -1,7 +1,7 @@
 import { makeColors } from '../../make-colors.js'
 
-// An 8-bit home computer's boot screen: blue-violet grays, light blue accent,
-// roles from that era's sixteen-color palette.
+// A home computer loading from tape at night: deep blue-violet grays, the light blue of its
+// horizon line as the accent, roles from that era's sixteen-colour palette.
 export const { theme, problems } = makeColors({
   label: 'Home computer',
   only: 'dark',
@@ -9,10 +9,10 @@ export const { theme, problems } = makeColors({
   dark: {
     gray: {
       anchors: {
-        'surface-0': '#1e1752',
-        'surface-1': '#221a5b',
-        'surface-2': '#261d63',
-        'surface-3': '#281f68',
+        'surface-0': '#110d2e',
+        'surface-1': '#151036',
+        'surface-2': '#17123b',
+        'surface-3': '#19143f',
         'text-primary': '#f0edff',
         'text-secondary': '#d6d0fb',
         'text-muted': '#b5acf0',
