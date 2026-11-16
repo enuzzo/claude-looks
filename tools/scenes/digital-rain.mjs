@@ -47,16 +47,15 @@ const COLS = [
   { x: 1549, d: 'mid', o: 0.6, p: 79, ph: 0.25, L: 400, xf: 43, still: 680 },
   { x: 1499, d: 'mid', o: 0.54, p: 67, ph: 0.04, L: 480, xf: 31, still: null },
   { x: 1450, d: 'mid', o: 0.48, p: 83, ph: 0.47, L: 420, xf: 37, still: 520 },
-  { x: 1398, d: 'mid', o: 0.4, p: 71, ph: 0.9, L: 380, xf: 23, still: null },
   { x: 1342, d: 'mid', o: 0.3, p: 89, ph: 0.18, L: 460, xf: 29, still: 640 },
-  { x: 1296, d: 'mid', o: 0.2, p: 97, ph: 0.6, L: 360, xf: 41, still: null },
-  { x: 1248, d: 'mid', o: 0.12, p: 101, ph: 0.37, L: 420, xf: 19, still: null },
 ]
 // far: a finer, dimmer screen behind, from the edge to where the band dissolves
 const FARX = [1597, 1584, 1561, 1541, 1518, 1494, 1470, 1447, 1423, 1398, 1371, 1345, 1322, 1296, 1263, 1231, 1196]
 const FARP = [83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167]
 const FARXF = [17, 19, 23, 29, 31, 37, 41, 43, 47]
+// every third: the desktop app stops a scene that animates too much type (2026-11-16)
 FARX.forEach((x, i) => {
+  if (i % 3 !== 0) return
   const t = (W - x) / (W - 1196) // 0 at the edge, 1 at the band's inner end
   COLS.push({ x, d: 'far', o: f(0.42 - t * 0.34), p: FARP[i], ph: (i * 0.618034) % 1, L: 380 + ((i * 7) % 5) * 40, xf: FARXF[i % FARXF.length], still: i % 3 === 1 ? 180 + ((i * 263) % 640) : null })
 })

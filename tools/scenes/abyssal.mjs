@@ -69,8 +69,8 @@ function passage(name, { y0, dir, cycle, share, enter, bob, bobDur, pitch, scale
 }
 
 // ── the animals: a manta for the corner, a small turtle for its rare passes
-const MANTA = flipbook('manta', t => manta(t, -1), 16, { cols: 52, rows: 44, dx: 0.064, elev: 1.42, ramp: ' .,:;-=+*#' }, { period: 15, colors: ['#d6fff6', '#6fd8c8', '#3f86b4', '#4b3f94'] })
-const TURTLE = flipbook('turtle', t => turtle(t, 1), 12, { cols: 44, rows: 30, dx: 0.068, elev: 1.3, ramp: ' .,:;-=+*#' }, { tex: turtleTex(1), period: 9.5, colors: ['#cfe3b0', '#86b296', '#3f7a72', '#1f4a52'] })
+const MANTA = flipbook('manta', t => manta(t, -1), 10, { cols: 52, rows: 44, dx: 0.064, elev: 1.42, ramp: ' .,:;-=+*#' }, { period: 15, colors: ['#d6fff6', '#6fd8c8', '#3f86b4', '#4b3f94'] })
+const TURTLE = flipbook('turtle', t => turtle(t, 1), 8, { cols: 44, rows: 30, dx: 0.068, elev: 1.3, ramp: ' .,:;-=+*#' }, { tex: turtleTex(1), period: 9.5, colors: ['#cfe3b0', '#86b296', '#3f7a72', '#1f4a52'] })
 
 // a moon jelly: the raymarched bell, with a fringe and oral arms traced in glyphs beneath it
 function jellyBook(id, n, period) {
@@ -98,8 +98,8 @@ function jellyBook(id, n, period) {
   })
   return book(trim(frames), id, period, ['#e9e0ff', '#ad9aea', '#6a5bb3', '#226e6e'], 0.33)
 }
-jellyBook('jellyA', 16, 10.5)
-jellyBook('jellyB', 16, 12.2)
+jellyBook('jellyA', 8, 10.5)
+jellyBook('jellyB', 8, 12.2)
 
 // ── plankton: a sparse tile of glyphs, drifting down slowly
 function planktonTile(id, size, n, glyphs, fs, o0, o1) {

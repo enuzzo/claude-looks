@@ -53,13 +53,13 @@ const EYE = (() => {
 const UNIT = RADII[0] / PHI // viewBox units per body unit: each koi's circle has a radius of φ body units
 const DX = 0.0472 // one glyph cell, in body units: the detail of the sprite
 const FS = (DX * UNIT) / 0.602 // the near koi's font size; the others are the same sprite at 1/φ and 1/φ²
-const FRAMES = 12
+const FRAMES = 8
 // centre, scale, lap and stroke periods (s), the angle on its circle at t = 0 (counter-clockwise from the
 // foot), and the frame it holds when nothing moves
 const KOI = [
-  { id: 'k1', c: C1, scale: 1, lap: 144, beat: 19, start: 100, hold: 3 },
-  { id: 'k2', c: C2, scale: 1 / PHI, lap: 89, beat: 17, start: 320, hold: 7 },
-  { id: 'k3', c: C3, scale: 1 / PHI ** 2, lap: 55, beat: 13, start: 270, hold: 10 },
+  { id: 'k1', c: C1, scale: 1, lap: 144, beat: 19, start: 100, hold: 2 },
+  { id: 'k2', c: C2, scale: 1 / PHI, lap: 89, beat: 17, start: 320, hold: 4, frames: 4 },
+  { id: 'k3', c: C3, scale: 1 / PHI ** 2, lap: 55, beat: 13, start: 270, hold: 7, frames: 1 },
 ]
 // the markings every frame carries, [s, z, rs, rz] in body units: red patches along the back, and small
 // ink marks in the white between them. Each koi colours them its own way (see the coats below).
@@ -96,7 +96,7 @@ function rows(frame, cw, ch, cls = {}) {
 }
 
 // ── the koi's flipbook, drawn once and worn by all three: each frame is a <g> in <defs>, and a koi is a
-// stack of <use>, one per frame, each fading in over 1/n of its cycle and out over the next. Twelve frames
+// stack of <use>, one per frame, each fading in over 1/n of its cycle and out over the next. Eight frames
 // and a plain crossfade, as abyssal has: blending 3 x 24 frames (plus-lighter in isolated groups) was more
 // than the desktop app's backdrop could draw under its glass, and it stopped every animation in the window.
 const [CW, CH] = cell(FS)
@@ -114,12 +114,17 @@ const BOOK = (() => {
     tf: `translate(${f(-(VIEW.cols / 2 - c0) * CW)} ${f(-(VIEW.rows / 2 - r0) * CH)})`,
   }
 })()
-const XF = `@keyframes xf{0%{opacity:0}${f(100 / FRAMES)}%{opacity:1}${f(200 / FRAMES)}%,100%{opacity:0}}\n`
+// a crossfade over n frames: each fades in over 1/n of the cycle and out over the next
+const xf = n => `@keyframes xf${n}{0%{opacity:0}${f(100 / n)}%{opacity:1}${f(200 / n)}%,100%{opacity:0}}\n`
+const XF = [...new Set(KOI.map(k => k.frames ?? FRAMES))].filter(n => n > 1).map(xf).join('')
 // a koi in place: turned to its starting angle, lapping counter-clockwise, at the foot of its circle
 function koiAt(k, i, anim) {
   const r = RADII[i]
-  const stack = anim
-    ? Array.from({ length: FRAMES }, (_, j) => `<use href="#f${j}" class="fr${j === k.hold ? ' f0' : ''}" style="animation:xf ${k.beat}s linear infinite ${f(((j - k.hold - 1) / FRAMES) * k.beat - k.beat)}s"/>`).join('')
+  // the middle one takes every other frame of the book; the far one, small and dim, only glides
+  // (one frame, still lapping): the desktop app stops a scene that animates too much type
+  const n = k.frames ?? FRAMES, step = FRAMES / n, hold = Math.round(k.hold / step)
+  const stack = anim && n > 1
+    ? Array.from({ length: n }, (_, j) => `<use href="#f${j * step}" class="fr${j === hold ? ' f0' : ''}" style="animation:xf${n} ${k.beat}s linear infinite ${f(((j - hold - 1) / n) * k.beat - k.beat)}s"/>`).join('')
     : `<use href="#f${k.hold}"/>`
   return `<g class="${k.id}" transform="translate(${f(k.c[0])} ${f(k.c[1])}) rotate(${-k.start})"><g${anim ? ` class="lap" style="animation-duration:${k.lap}s"` : ''}><g transform="translate(0 ${f(r)}) scale(${f(k.scale)})">${i === 0 ? `<circle r="${f(15 * FS)}" fill="url(#halo)"/>` : ''}<g class="book" transform="${BOOK.tf}">${stack}</g></g></g></g>`
 }
@@ -252,9 +257,8 @@ ${base}
 .lap{animation:lap 144s linear infinite}
 .rg{opacity:0;fill:${L.ring}}
 #petal{fill:url(#pt)}.petal{opacity:0;animation:petal 233s linear infinite 55s}
-${L.caustics ? `#caustics{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s ease-in-out infinite}.cB{opacity:.1;animation:cB 29s ease-in-out infinite -11s}
+${L.caustics ? `#caustics{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s ease-in-out infinite}
 @keyframes cA{0%,100%{opacity:.3;transform:translate(0,0)}50%{opacity:.12;transform:translate(-13px,8px)}}
-@keyframes cB{0%,100%{opacity:.1;transform:translate(34px,-21px)}50%{opacity:.24;transform:translate(47px,-13px)}}
 ` : ''}pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s linear infinite}
 .glowA{--x:-50px;--y:-34px;animation:breathe 61s ease-in-out infinite}.glowB{--x:80px;--y:60px;animation:breathe 97s ease-in-out infinite -30s}
 ${XF}${[...ringCycles].map(ringKf).join('')}@keyframes lap{to{transform:rotate(-360deg)}}
@@ -284,7 +288,7 @@ ${SPECKS}${L.caustics ? CAUSTICS : ''}${BOOK.frames.join('')}${PETAL}${RINGS}
 ${ground}
 ${glows(true)}
 <g class="specks"><rect y="-420" width="${W + 420}" height="${H + 420}" fill="url(#specks)"/></g>
-${L.caustics ? '<g class="cA"><use href="#caustics"/></g><g class="cB"><use href="#caustics"/></g>' : ''}
+${L.caustics ? '<g class="cA"><use href="#caustics"/></g>' : ''}
 ${fish(true)}
 ${ripples}
 <g transform="translate(${f(EYE[0])} ${f(EYE[1])})">${petalRings}<g class="petal"><use href="#petal"/></g></g>

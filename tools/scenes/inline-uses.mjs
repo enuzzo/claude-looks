@@ -1,7 +1,7 @@
-// The desktop app stops a backdrop's animations a few seconds in when the scene holds <use>
-// (2026-11-16: abyssal, digital-rain and koi-script froze on their first frame; synthwave-sunset and
-// ascii-tide, with no <use>, kept moving). So a scene is written out in full: each <use href="#id"/>
-// becomes a <g> holding a copy of #id, and a definition nothing points at any more is dropped.
+// Writes a scene out in full: each <use href="#id"/> becomes a <g> holding a copy of #id, and a
+// definition nothing points at any more is dropped. Used by abyssal. It also gives a scene's true
+// drawing cost, the one the budget in docs/DIRECTION.md counts: what the app draws once every <use>
+// is expanded.
 
 // every element with an id, by id: its tag, the rest of its open tag, what it holds, and where it sits
 function definitions(svg) {

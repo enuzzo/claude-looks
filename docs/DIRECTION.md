@@ -37,7 +37,12 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    over the scene is light (blur 3 to 8, opacity 0.3 to 0.55) so the type of a glyph scene still reads.
 8. **Still is composed.** Under *reduce motion* every animation stops, and the frame left must be a
    finished picture: subject in place, no half-faded frames, no event caught mid-way.
-9. **Budget.** A scene under 131,072 characters (aim for half); a poster (below) under 12,000.
+9. **Budget.** A scene under 131,072 characters (aim for half); a poster (below) under 12,000. And a
+   drawing budget, which matters more: the desktop app lets a scene run for a few seconds and then
+   stops it on its first frame when it animates too much type (found 2026-11-16 by taking abyssal
+   apart: at 9,500 glyphs and 50k characters with every `<use>` expanded it ran, at 12,900 glyphs and
+   61k it stopped). Keep a scene, `<use>` expanded (`tools/scenes/inline-uses.mjs`), under about
+   7,000 glyphs and 50k characters: fewer flipbook frames, fewer copies, a still frame for a far subject.
 
 ## Making one
 
