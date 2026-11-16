@@ -11,9 +11,11 @@ import { fileURLToPath } from 'node:url'
 import { LOOKS } from '../hooks/looks/index.js'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const OUT = join(ROOT, 'docs', 'screenshots')
+// PREVIEW_OUT writes elsewhere and PREVIEW_DESKTOP=1920x900 shoots another window: for checking a look
+// at several widths without touching the README's pictures.
+const OUT = process.env.PREVIEW_OUT ? resolve(process.env.PREVIEW_OUT) : join(ROOT, 'docs', 'screenshots')
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-const SIZES = { desktop: [1440, 900, 1], mobile: [390, 844, 2] }
+const SIZES = { desktop: [...(process.env.PREVIEW_DESKTOP ?? '1440x900').split('x').map(Number), 1], mobile: [390, 844, 2] }
 
 // Which ramp step each surface, text and role text sits on, per mode, as
 // hooks/make-colors.js maps them (surface-0 is gray-20 / gray-900, and so on).

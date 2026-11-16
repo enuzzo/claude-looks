@@ -1,9 +1,9 @@
-// Signed distance fields of the koi pond, seen from above: the koi and a petal.
+// The signed distance field of the koi, seen from above.
 // The camera looks straight down (elev = π/2), so the screen shows the x–z plane, +z towards the viewer's feet.
-import { clamp, ellipsoid, rot } from './ascii3d.mjs'
+import { clamp, rot } from './ascii3d.mjs'
 
 // colour tags a koi cell can carry
-export const WHITE = 0, RED = 1, FIN = 2
+export const WHITE = 0, RED = 1, FIN = 2, SUMI = 3
 
 // a 2D polygon distance (signed), vertices [[x, z], ...]
 function poly2(px, pz, V) {
@@ -59,10 +59,12 @@ export const stroke = tau => {
  * fit): the head hardly moves, the front third stays stiff, the tail sweeps about a tenth of its length.
  * The cross-section turns with the spine's tangent, so the body bends instead of shearing.
  * `turn`: +1 the circle's centre lies at +z (on screen it turns clockwise), -1 at -z (counter-clockwise).
- * `marks`: the red patches of its coat, ellipses [s, z, rs, rz] along the back.
+ * `marks`: the red patches of its coat, ellipses [s, z, rs, rz] along the back; `spots`: smaller ink
+ * marks, given the same way and counted only where no red lies. The cells carry the tags RED and SUMI,
+ * and a scene colours them as each koi's coat asks (a kohaku leaves the ink white, an ogon wears one colour).
  * Returns { sdf, tex, tag }.
  */
-export function koi(tau, { radius = PHI, turn = 1, marks = [] } = {}) {
+export function koi(tau, { radius = PHI, turn = 1, marks = [], spots = [] } = {}) {
   const { a, phase } = stroke(tau)
   const K = (2 * Math.PI) / FULL // one wavelength along the body
   const wave = s => {
@@ -103,14 +105,15 @@ export function koi(tau, { radius = PHI, turn = 1, marks = [] } = {}) {
     }
     return [body, fin, s, zb, edge]
   }
-  const red = (s, zb) => marks.some(([ms, mz, rs, rz]) => {
+  const inside = list => (s, zb) => list.some(([ms, mz, rs, rz]) => {
     const p = (s - ms) / rs, q = (zb - mz) / rz
     // a ragged edge, fixed to the body
     return p * p + q * q < 1 + 0.22 * Math.sin(19 * s + 3 * ms) * Math.sin(27 * zb + 5 * mz)
   })
+  const red = inside(marks), ink = inside(spots)
   return {
     sdf: (x, y, z) => { const [b, f] = parts(x, y, z); return Math.min(b, f) * 0.7 },
-    tag: (x, y, z) => { const [b, f, s, zb] = parts(x, y, z); return f < b ? FIN : red(s, zb) ? RED : WHITE },
+    tag: (x, y, z) => { const [b, f, s, zb] = parts(x, y, z); return f < b ? FIN : red(s, zb) ? RED : ink(s, zb) ? SUMI : WHITE },
     // fins are thin and let the water through, ribbed by their rays; scales catch the light in a faint lattice
     tex: (x, y, z) => {
       const [b, f, s, zb, edge] = parts(x, y, z)
@@ -121,13 +124,5 @@ export function koi(tau, { radius = PHI, turn = 1, marks = [] } = {}) {
       const seam = Math.abs(zb) < 0.02 && s > -0.5 && s < 0.3 ? 0.7 : 1
       return ((red(s, zb) ? 0.84 : 1.12) + 0.1 * lattice) * seam
     },
-  }
-}
-
-// ── a petal: a small cupped blade, bright in the cup and fading to its rim
-export function petal() {
-  return {
-    sdf: (x, y, z) => { [x, z] = rot(x, z, 0.6); return ellipsoid(x, y - 0.5 * x * x - 1.2 * z * z, z, 0.5, 0.05, 0.25) },
-    tex: (x, y, z) => { [x, z] = rot(x, z, 0.6); return 0.62 - 0.45 * Math.hypot(x / 0.5, z / 0.25) ** 2 },
   }
 }
