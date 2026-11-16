@@ -187,36 +187,3 @@ test('koi-script wears jade water by day and night water after dusk', async ($, 
     await ui.unmount()
   }
 })
-
-// The hour is looked at again on a timer: one period is let through here, the next refused.
-test('koi-script changes dress when the hour passes dusk in a running session', async ($, on) => {
-  engine(on, 'koi-script')
-  let hour = 18
-  let periods = 0
-  const worn: unknown[] = []
-  on('clock.now', () => ({ value: new Date(2026, 10, 16, hour).getTime() }))
-  on('clock.every', async () => {
-    periods += 1
-    if (periods > 1) {
-      return { deny: 'one period is enough' }
-    }
-    // the period ends once the session has dressed, and by then it is dusk
-    for (let i = 0; i < 50 && worn.length < 1; i++) {
-      await new Promise(resolve => setTimeout(resolve, 5))
-    }
-    hour = 19
-    return { value: undefined }
-  })
-  on('theme.set', (_, e) => {
-    const backdrop = (e as unknown as { backdrop?: { id?: string; scene?: string } }).backdrop ?? {}
-    worn.push(backdrop.id ?? backdrop.scene)
-    return { value: { isDrawn: true, requestId: 'backdrop' } }
-  })
-  on('command.run', () => ({ text: 'engine' }))
-
-  await $.session.start(START)
-  for (let i = 0; i < 20 && worn.length < 2; i++) {
-    await new Promise(resolve => setTimeout(resolve, 10))
-  }
-  expect(worn).toEqual(['koi-script-day', 'koi-script'])
-})

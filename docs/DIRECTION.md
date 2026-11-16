@@ -46,8 +46,8 @@ ASCII pines). The middle, where the conversation sits, stays clear.
   of the scene's composition, drawn by `/look preview`. The preview never embeds a whole scene: sixteen
   animated scenes in one message is more than the app will draw.
 - A look may carry a second dress for daylight (`day` in its `index.js`: its own palette and scene, from
-  the same generator and within the same budget), worn by the local hour: read when the look is put on,
-  and again every quarter of an hour.
+  the same generator and within the same budget), worn by the local hour, read when the look is put on. No timers:
+  with a plugin timer (`$.clock.every`) running, every backdrop in the desktop app stopped a few seconds in.
 - Check a scene in motion, not only in stills: render frames at 30 fps over 10 s and watch them.
 - Check it behind the app's glass with `node tools/preview.mjs <id>`, desktop and phone.
 

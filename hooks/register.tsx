@@ -52,8 +52,7 @@ async function localHour($: EngineInterface) {
 }
 
 // A look with a daylight dress wears it between its hours. The choice is made when
-// the look is put on, at session start or by /look, and looked at again every
-// quarter of an hour (watchTheHour), so a session that runs past dusk changes dress.
+// the look is put on, at session start or by /look. No timer: a plugin timer// (clock.every) in the desktop app froze every backdrop a few seconds in.
 async function argsFor($: EngineInterface, look: Look) {
   if (look.day === undefined) {
     return look.args
@@ -77,34 +76,6 @@ for (const look of LOOKS) {
   }
 }
 
-// The dress a look last put on, by its backdrop's id.
-const dressOf = (args: Look['args']) => (args.backdrop as { id?: string } | undefined)?.id
-let wornDress: string | undefined
-
-const RECHECK_MS = 15 * 60 * 1000
-
-// Every quarter of an hour: if the look being worn has a daylight dress and the
-// hour now asks for the other one, put that on. Where the host offers no timer
-// the dress stands until the look is next put on.
-function watchTheHour($: EngineInterface) {
-  try {
-    $.clock.every(RECHECK_MS, () => {
-      void (async () => {
-        const id = await read($, current)
-        const look = findLook(id)
-
-        if (look?.day !== undefined && dressOf(await argsFor($, look)) !== wornDress) {
-          await apply($, id)
-        }
-      })().catch(() => {
-        // A re-check that fails leaves the dress as it is.
-      })
-    })
-  } catch {
-    // No timer here.
-  }
-}
-
 async function apply($: EngineInterface, id: string) {
   const look = findLook(id)
 
@@ -113,7 +84,6 @@ async function apply($: EngineInterface, id: string) {
     return { isDrawn: false as const, reason: 'off' }
   }
   const args = await argsFor($, look)
-  wornDress = dressOf(args)
 
   const unpainted = look.problems.find(line => line.startsWith("Desktop won't paint"))
 
@@ -175,8 +145,6 @@ export const register: Register = on => {
     })
     const id = await storedLook($)
     await update($, current, () => id)
-
-    watchTheHour($)
 
     // Only a look this version still has: a stored id it lacks (a renamed or
     // removed look) must not clear another plugin's theme at session start.
