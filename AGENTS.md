@@ -16,8 +16,16 @@ If either reports a finding, stop: do not commit or push, and tell the owner wha
 
 ## Other rules
 
-- After every push, refresh the local install so the owner can try it in a new session:
-  `claude plugin marketplace update claude-looks`, then `claude plugin update looks@claude-looks`.
+- Publish with `tools/release.sh` (or `tools/release.sh minor`), never with a bare `git push`. Installs update
+  only when the version in `.claude-plugin/plugin.json` changes, so the script runs the checks below, bumps the
+  version, commits, pushes and refreshes this Mac's install. `.githooks/pre-push` refuses a push to main that
+  changes the plugin without a new version (docs, tests and tools alone may go with a plain push); the script
+  turns the hook on with `git config core.hooksPath .githooks`, which each new clone needs once.
+- The owner works from two Macs. Both install the plugin from GitHub (`claude plugin marketplace add
+  enuzzo/claude-looks`), not from this folder (README step 5 is for contributors), with `autoUpdate: true` on the
+  marketplace in `~/.claude/settings.json` (`extraKnownMarketplaces`), so a new session picks up the latest
+  release by itself. To try unpublished work, use a dev mod linked to this folder. Before judging the state of
+  the looks, `git pull`: the other Mac may have pushed.
 - Commit and push only when the owner asks. Leave the git author email as it is (the GitHub noreply address).
 - Code, comments, commits and the README are in English.
 - Before a commit, `claude plugin validate .claude-plugin/plugin.json` and `claude plugin test .` must pass, and so

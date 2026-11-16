@@ -1,0 +1,23 @@
+#!/bin/sh
+# Refuses a push to main that changes the plugin without a new version:
+# installs only update when the version in plugin.json changes.
+# Docs, tests and tools alone do not need one. Publish with tools/release.sh.
+manifest=.claude-plugin/plugin.json
+version_at() { git show "$1:$manifest" 2>/dev/null | sed -n 's/.*"version": *"\([0-9.]*\)".*/\1/p'; }
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$remote_ref" = refs/heads/main ] || continue
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac # deleting
+  case "$remote_sha" in *[!0]*) ;; *) continue ;; esac # new branch
+
+  changed=$(git diff --name-only "$remote_sha" "$local_sha" -- . \
+    ':!docs' ':!tests' ':!tools' ':!README.md' ':!AGENTS.md' ':!CLAUDE.md' ':!LICENSE' ':!.gitignore' ':!.githooks')
+  [ -n "$changed" ] || continue
+
+  if [ "$(version_at "$remote_sha")" = "$(version_at "$local_sha")" ]; then
+    echo "pre-push: the plugin changed but $manifest still says $(version_at "$local_sha")," >&2
+    echo "          so installs would not update. Publish with tools/release.sh instead." >&2
+    exit 1
+  fi
+done
+exit 0
