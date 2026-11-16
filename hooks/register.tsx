@@ -52,7 +52,8 @@ async function localHour($: EngineInterface) {
 }
 
 // A look with a daylight dress wears it between its hours. The choice is made when
-// the look is put on, at session start or by /look. No timer: a plugin timer// (clock.every) in the desktop app froze every backdrop a few seconds in.
+// the look is put on, at session start or by /look. No timer: with a plugin timer
+// (clock.every) running, every backdrop in the desktop app stopped a few seconds in.
 async function argsFor($: EngineInterface, look: Look) {
   if (look.day === undefined) {
     return look.args
