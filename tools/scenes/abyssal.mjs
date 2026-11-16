@@ -5,6 +5,7 @@
 // of their swim cycle, and the frames dissolve into one another. They are rare: each keeps to its own
 // depth (far ones small, dim and slow) and its own long cycle, so most of the time one or none is in view.
 import { writeFileSync } from 'node:fs'
+import { inlineUses } from './inline-uses.mjs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -141,7 +142,7 @@ ${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}.visit{o
 
 // Anchored bottom-right: on a tall phone the left is cropped, on a wide window the top, and the corner
 // with the manta stays in view; the middle, where the words are, stays empty.
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice">
+const svg = inlineUses(`<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice">
 ${style}
 ${DEFS}
 <rect width="${W}" height="${H}" fill="url(#sea)"/>
@@ -152,7 +153,7 @@ ${DEFS}
 <g transform="translate(270 640) scale(.5)"><g class="jdrift" style="animation-delay:-40s"><circle r="120" fill="url(#jglow)"/><use href="#jellyB"/></g></g></g>
 <g class="visitor"><g transform="translate(1450 900)"><g class="visit"><g transform="rotate(-74) scale(.62)">${TURTLE}</g></g></g></g>
 <g class="manta" transform="translate(1330 790)"><g class="oX"><g class="oY"><g class="bank"><g transform="scale(1.25)">${MANTA}</g></g></g></g></g>
-</svg>`.replace(/\n\s*\n/g, '\n')
+</svg>`.replace(/\n\s*\n/g, '\n'))
 
 // the poster: the same composition, still, with only the manta and the near jelly
 const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice" width="320" height="180">
