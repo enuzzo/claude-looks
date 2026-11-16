@@ -53,13 +53,13 @@ const EYE = (() => {
 const UNIT = RADII[0] / PHI // viewBox units per body unit: each koi's circle has a radius of φ body units
 const DX = 0.0472 // one glyph cell, in body units: the detail of the sprite
 const FS = (DX * UNIT) / 0.602 // the near koi's font size; the others are the same sprite at 1/φ and 1/φ²
-const FRAMES = 24
+const FRAMES = 12
 // centre, scale, lap and stroke periods (s), the angle on its circle at t = 0 (counter-clockwise from the
 // foot), and the frame it holds when nothing moves
 const KOI = [
-  { id: 'k1', c: C1, scale: 1, lap: 144, beat: 19, start: 100, hold: 7 },
-  { id: 'k2', c: C2, scale: 1 / PHI, lap: 89, beat: 17, start: 320, hold: 15 },
-  { id: 'k3', c: C3, scale: 1 / PHI ** 2, lap: 55, beat: 13, start: 270, hold: 21 },
+  { id: 'k1', c: C1, scale: 1, lap: 144, beat: 19, start: 100, hold: 3 },
+  { id: 'k2', c: C2, scale: 1 / PHI, lap: 89, beat: 17, start: 320, hold: 7 },
+  { id: 'k3', c: C3, scale: 1 / PHI ** 2, lap: 55, beat: 13, start: 270, hold: 10 },
 ]
 // the markings every frame carries, [s, z, rs, rz] in body units: red patches along the back, and small
 // ink marks in the white between them. Each koi colours them its own way (see the coats below).
@@ -96,9 +96,9 @@ function rows(frame, cw, ch, cls = {}) {
 }
 
 // ── the koi's flipbook, drawn once and worn by all three: each frame is a <g> in <defs>, and a koi is a
-// stack of <use>, one per frame, each fading in over 1/n of its cycle and out over the next. The frames
-// add their light (plus-lighter, inside an isolated group), so where two neighbours hold the same glyph
-// the pair is exactly as bright as one: no pulse at the frame rate.
+// stack of <use>, one per frame, each fading in over 1/n of its cycle and out over the next. Twelve frames
+// and a plain crossfade, as abyssal has: blending 3 x 24 frames (plus-lighter in isolated groups) was more
+// than the desktop app's backdrop could draw under its glass, and it stopped every animation in the window.
 const [CW, CH] = cell(FS)
 const VIEW = { cols: 96, rows: 84, dx: DX, aspect: CH / CW, elev: Math.PI / 2, ramp: RAMP, outline: false, light: [0.12, 1, 0.1] }
 const TAGS = { [RED]: 'r', [SUMI]: 's' }
@@ -248,7 +248,7 @@ svg{font-size:${f(FS)}px}.r{fill:var(--r)}.s{fill:var(--s)}
 .k1{fill:url(#kw);--r:${L.k1.red};--s:url(#kw)}.k2{fill:${L.k2.white};--r:${L.k2.red};--s:${L.k2.ink};opacity:${L.k2.opacity}}.k3{fill:${L.k3.white};--r:${L.k3.white};--s:${L.k3.white};opacity:${L.k3.opacity}}`
   const style = `<style>
 ${base}
-.book{isolation:isolate}.fr{opacity:0;mix-blend-mode:plus-lighter}.fr.f0{opacity:1}
+.fr{opacity:0}.fr.f0{opacity:1}
 .lap{animation:lap 144s linear infinite}
 .rg{opacity:0;fill:${L.ring}}
 #petal{fill:url(#pt)}.petal{opacity:0;animation:petal 233s linear infinite 55s}
