@@ -2,7 +2,7 @@
 // A still pond seen from above, in glyphs. Three koi circle in the bottom-right corner, each on its own
 // depth: the near one large, bright and slow, the far ones smaller, dimmer and closer to the water.
 // The koi is a real solid (a signed distance field in koi.mjs), raymarched here at build time into ASCII,
-// one frame per step of a stroke-and-glide cycle; the frames dissolve into one another, and the lap is a
+// one frame per step of a stroke-and-glide cycle, shown in turn like a flipbook, and the lap is a
 // slow turn of the whole sprite, whose spine is already bent to the circle it swims. The three wear the
 // same flipbook in different coats: a kohaku, a sanke and a pale ogon. In the near koi's wake a few rings
 // of dots open; minutes apart a petal comes down at the heart of it all.
@@ -97,9 +97,9 @@ function rows(frame, cw, ch, cls = {}) {
 }
 
 // ── the koi's flipbook, drawn once and worn by all three: each frame is a <g> in <defs>, and a koi is a
-// stack of <use>, one per frame, each fading in over 1/n of its cycle and out over the next. Eight frames
-// and a plain crossfade, as abyssal has: blending 3 x 24 frames (plus-lighter in isolated groups) was more
-// than the desktop app's backdrop could draw under its glass, and it stopped every animation in the window.
+// stack of <use>, one per frame, each shown for 1/n of its cycle. Every animation here is stepped and
+// every flipbook switched, never cross-faded: the desktop app stops a scene that costs too much to draw
+// (docs/DIRECTION.md rule 9). Eight frames: sixteen cost more, as every switch is a redraw.
 const [CW, CH] = cell(FS)
 const VIEW = { cols: 96, rows: 84, dx: DX, aspect: CH / CW, elev: Math.PI / 2, ramp: RAMP, outline: false, light: [0.12, 1, 0.1] }
 const TAGS = { [RED]: 'r', [SUMI]: 's' }
@@ -115,9 +115,10 @@ const BOOK = (() => {
     tf: `translate(${f(-(VIEW.cols / 2 - c0) * CW)} ${f(-(VIEW.rows / 2 - r0) * CH)})`,
   }
 })()
-// a crossfade over n frames: each fades in over 1/n of the cycle and out over the next
-const xf = n => `@keyframes xf${n}{0%{opacity:0}${f(100 / n)}%{opacity:1}${f(200 / n)}%,100%{opacity:0}}\n`
-const XF = [...new Set(KOI.map(k => k.frames ?? FRAMES))].filter(n => n > 1).map(xf).join('')
+// a flipbook of n frames: each is shown for 1/n of the cycle, switched with visibility, never faded (a
+// crossfade draws every frame of the stack on every frame of the scene: six times the cost, measured)
+const fb = n => `@keyframes fb${n}{0%{visibility:visible}${f(100 / n)}%,100%{visibility:hidden}}\n`
+const FB = [...new Set(KOI.map(k => k.frames ?? FRAMES))].filter(n => n > 1).map(fb).join('')
 // a koi in place: turned to its starting angle, lapping counter-clockwise, at the foot of its circle
 function koiAt(k, i, anim) {
   const r = RADII[i]
@@ -125,7 +126,7 @@ function koiAt(k, i, anim) {
   // (one frame, still lapping): the desktop app stops a scene that animates too much type
   const n = k.frames ?? FRAMES, step = FRAMES / n, hold = Math.round(k.hold / step)
   const stack = anim && n > 1
-    ? Array.from({ length: n }, (_, j) => `<use href="#f${j * step}" class="fr${j === hold ? ' f0' : ''}" style="animation:xf${n} ${k.beat}s linear infinite ${f(((j - hold - 1) / n) * k.beat - k.beat)}s"/>`).join('')
+    ? Array.from({ length: n }, (_, j) => `<use href="#f${j * step}" class="fr${j === hold ? ' f0' : ''}" style="animation:fb${n} ${k.beat}s steps(1) infinite ${f((j / n) * k.beat - k.beat)}s"/>`).join('')
     : `<use href="#f${k.hold}"/>`
   return `<g class="${k.id}" transform="translate(${f(k.c[0])} ${f(k.c[1])}) rotate(${-k.start})"><g${anim ? ` class="lap" style="animation-duration:${k.lap}s"` : ''}><g transform="translate(0 ${f(r)}) scale(${f(k.scale)})">${i === 0 ? `<circle r="${f(15 * FS)}" fill="url(#halo)"/>` : ''}<g class="book" transform="${BOOK.tf}">${stack}</g></g></g></g>`
 }
@@ -164,7 +165,7 @@ const ringCycles = new Set()
 function ripple([x, y], { cycle, first, count = RING_R.length, peak = 1 }) {
   ringCycles.add(cycle)
   let s = ''
-  for (let j = 0; j < count; j++) s += `<use href="#rg${j}" class="rg" style="--o:${f(peak * (1 - j / (count + 3)))};animation:rg${cycle} ${cycle}s linear infinite ${f(first + j * STEP)}s"/>`
+  for (let j = 0; j < count; j++) s += `<use href="#rg${j}" class="rg" style="--o:${f(peak * (1 - j / (count + 3)))};animation:rg${cycle} ${cycle}s steps(${cycle * 3}) infinite ${f(first + j * STEP)}s"/>`
   return `<g transform="translate(${f(x)} ${f(y)})">${s}</g>`
 }
 const ringKf = cycle => `@keyframes rg${cycle}{0%{opacity:0}${f((STEP / cycle) * 100)}%{opacity:var(--o)}${f(((4 * STEP) / cycle) * 100)}%,100%{opacity:0}}\n`
@@ -254,15 +255,15 @@ svg{font-size:${f(FS)}px}.r{fill:var(--r)}.s{fill:var(--s)}
 .k1{fill:url(#kw);--r:${L.k1.red};--s:url(#kw)}.k2{fill:${L.k2.white};--r:${L.k2.red};--s:${L.k2.ink};opacity:${L.k2.opacity}}.k3{fill:${L.k3.white};--r:${L.k3.white};--s:${L.k3.white};opacity:${L.k3.opacity}}`
   const style = `<style>
 ${base}
-.fr{opacity:0}.fr.f0{opacity:1}
-.lap{animation:lap 144s linear infinite}
+.fr{visibility:hidden}.fr.f0{visibility:visible}
+.lap{animation:lap 144s steps(720) infinite}
 .rg{opacity:0;fill:${L.ring}}
-.pt{fill:url(#pt)}.petal{opacity:0;animation:petal 233s linear infinite 55s}
-${L.caustics ? `.cs{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s ease-in-out infinite}
+.pt{fill:url(#pt)}.petal{opacity:0;animation:petal 233s steps(932) infinite 55s}
+${L.caustics ? `.cs{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s steps(94) infinite}
 @keyframes cA{0%,100%{opacity:.3;transform:translate(0,0)}50%{opacity:.12;transform:translate(-13px,8px)}}
-` : ''}pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s linear infinite}
-.glowA{--x:-50px;--y:-34px;animation:breathe 61s ease-in-out infinite}.glowB{--x:80px;--y:60px;animation:breathe 97s ease-in-out infinite -30s}
-${XF}${[...ringCycles].map(ringKf).join('')}@keyframes lap{to{transform:rotate(-360deg)}}
+` : ''}pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s steps(311) infinite}
+.glowA{--x:-50px;--y:-34px;animation:breathe 61s steps(61) infinite}.glowB{--x:80px;--y:60px;animation:breathe 97s steps(97) infinite -30s}
+${FB}${[...ringCycles].map(ringKf).join('')}@keyframes lap{to{transform:rotate(-360deg)}}
 @keyframes breathe{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--x),var(--y)) scale(1.12)}}
 @keyframes slide{to{transform:translate(-420px,420px)}}
 @keyframes petal{0%{opacity:0;transform:translate(13px,-21px) rotate(-55deg) scale(2.2)}2.15%{opacity:.95;transform:translate(0,0) rotate(0deg) scale(1)}25.7%{opacity:.8;transform:translate(-34px,21px) rotate(34deg) scale(1)}28.3%,100%{opacity:0;transform:translate(-37px,23px) rotate(38deg) scale(.92)}}

@@ -28,6 +28,9 @@ claude=$(ls -d "$HOME/Library/Application Support/Claude/claude-code/"*/*/claude
 gitleaks dir . >/dev/null 2>&1 || fail "gitleaks dir found something: stop and tell the owner"
 "$claude" plugin validate "$manifest" >/dev/null || fail "plugin validate failed"
 "$claude" plugin test . >/dev/null || fail "plugin test failed"
+# Every scene as the desktop app will meet it: well-formed XML, its validator, and the per-frame cost its guard
+# measures (a scene over budget runs ~3 s, then freezes on its still copy). See tools/qa/scenes.mjs.
+node tools/qa/scenes.mjs || fail "a scene failed tools/qa/scenes.mjs (output above)"
 
 old=$(sed -n 's/.*"version": *"\([0-9.]*\)".*/\1/p' "$manifest")
 new=$(echo "$old" | awk -F. -v part="$part" '{

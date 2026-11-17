@@ -1,8 +1,9 @@
-// The desktop app draws nothing a <use> points at (2026-11-16: the koi and the rain columns, both
-// <use>, never showed; abyssal, written out, did). So every scene is written out in full: each
-// <use href="#id"/> becomes a <g> holding a copy of #id, and a definition nothing points at any more
-// is dropped. A copy has no id, so style it by class, never by #id. The written-out scene is also
-// what the drawing budget in docs/DIRECTION.md counts.
+// Writes every <use href="#id"/> out as a copy of #id, and drops definitions nothing points at any more.
+// The desktop app draws <use> (it passes the validator), but on the frame-cost bench a written-out scene is
+// cheaper: abyssal measured 3.3 ms written out against 4.9 ms with <use> (tools/qa/scenes.mjs, 2026-11-17).
+// A copy has no id, so style it by class, never by #id. Attributes of the <use> and of the definition's own
+// <g> never land on one element twice (0.3.6 wrote `style` twice and the app threw the koi scene away): when
+// they share a name, the definition's attributes go on a nested <g>.
 
 // every element with an id, by id: its tag, the rest of its open tag, what it holds, and where it sits
 function definitions(svg) {
@@ -22,6 +23,9 @@ function definitions(svg) {
   return found
 }
 
+const attributes = text => new Map([...text.matchAll(/([^\s=]+)="([^"]*)"/g)].map(m => [m[1], m[2]]))
+const write = map => [...map].map(([k, v]) => ` ${k}="${v}"`).join('')
+
 export function inlineUses(svg) {
   let out = svg
   for (let pass = 0; pass < 4 && /<use\b/.test(out); pass++) {
@@ -30,13 +34,18 @@ export function inlineUses(svg) {
       const ref = attrs.match(/(?:xlink:)?href="#([^"]+)"/)
       const d = ref && defs.get(ref[1])
       if (!d) return all
-      let rest = attrs.replace(ref[0], '')
-      const x = rest.match(/\bx="([^"]+)"/), y = rest.match(/\by="([^"]+)"/)
-      rest = rest.replace(/\b[xy]="[^"]+"/g, '').replace(/\s+/g, ' ').trim()
-      const move = x || y ? ` transform="translate(${x ? x[1] : 0} ${y ? y[1] : 0})"` : ''
+      const outer = attributes(attrs.replace(ref[0], ''))
+      const x = outer.get('x'), y = outer.get('y')
+      outer.delete('x'); outer.delete('y')
+      if (x || y) {
+        const move = `translate(${x ?? 0} ${y ?? 0})`
+        outer.set('transform', outer.has('transform') ? `${outer.get('transform')} ${move}` : move)
+      }
       const body = d.tag === 'g' || d.tag === 'symbol' ? d.inner : `<${d.tag}${d.attrs}>${d.inner}</${d.tag}>`
-      const own = d.tag === 'g' ? d.attrs.trim() : ''
-      return `<g${move}${rest ? ' ' + rest : ''}${own ? ' ' + own : ''}>${body}</g>`
+      const own = d.tag === 'g' ? attributes(d.attrs) : new Map()
+      if ([...own.keys()].some(k => outer.has(k))) return `<g${write(outer)}><g${write(own)}>${body}</g></g>`
+      for (const [k, v] of own) outer.set(k, v)
+      return `<g${write(outer)}>${body}</g>`
     })
   }
   // drop the definitions inside <defs> that nothing names any more

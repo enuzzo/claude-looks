@@ -1,12 +1,12 @@
 // digital-rain scene generator. Run: node tools/scenes/digital-rain.mjs
-// The falling-glyph rain as a slow, deep curtain hugging the right edge. The glyphs never move: each
-// column is a fixed strip of half-width katakana, digits and a few letters, mirrored, and a drop of
-// light runs down it, lighting the glyphs it passes and leaving them to fade. A pale head leads the
-// drop. Three layers of columns sit at three depths (far: small, dim, slow). Inside a column a few
-// glyphs change by dissolving into others. A faint green haze breathes behind the band. Rarely, a single
+// The falling-glyph rain as a slow, deep curtain hugging the right edge. Every column is faintly there,
+// a strip of half-width katakana, digits and a few letters, mirrored, where now and then two glyphs
+// take turns. Down it falls a drop of light: a short string of glyphs, brightest just behind its pale
+// head, that steps down one row at a time, as a terminal would draw it. Three layers of columns sit at
+// three depths (far: small, dim, slow). A faint green haze breathes behind the band. Rarely, a single
 // column far out in the empty field lights once and falls, very dim, like a thought crossing.
+// Built to draw cheaply (docs/DIRECTION.md rule 9): stepped motion, flat fills, no masks.
 import { writeFileSync } from 'node:fs'
-import { inlineUses } from './inline-uses.mjs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -54,7 +54,7 @@ const COLS = [
 const FARX = [1597, 1584, 1561, 1541, 1518, 1494, 1470, 1447, 1423, 1398, 1371, 1345, 1322, 1296, 1263, 1231, 1196]
 const FARP = [83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167]
 const FARXF = [17, 19, 23, 29, 31, 37, 41, 43, 47]
-// every third: the desktop app stops a scene that animates too much type (2026-11-16)
+// every third far column: enough for depth (tools/qa/scenes.mjs keeps the frame cost in check)
 FARX.forEach((x, i) => {
   if (i % 3 !== 0) return
   const t = (W - x) / (W - 1196) // 0 at the edge, 1 at the band's inner end
@@ -70,53 +70,59 @@ const THOUGHTS = [
 const RESIDUE = { far: 0.06, mid: 0.08, near: 0.1 }
 
 let css = ''
-let defs = ''
 let body = ''
 const kfs = new Set()
 const kf = (name, b) => { if (!kfs.has(name)) { kfs.add(name); css += `@keyframes ${name}{${b}}\n` } }
 
-// a column's glyphs: a stable strip, and two alternates (A, B) at about one cell in five, crossfaded
-function strip(d, n) {
-  const { step } = LAYERS[d]
-  const st = [], a = [], b = []
-  for (let r = 0; r < n; r++) {
-    const y = f(r * step)
-    if (R() < 0.2) { a.push([glyph(), y]); b.push([glyph(), y]) } else st.push([glyph(), y])
-  }
-  const t = cells => cells.length ? `<text x="${cells.map(() => 0).join(' ')}" y="${cells.map(c => c[1]).join(' ')}">${cells.map(c => c[0]).join('')}</text>` : ''
-  return { st: t(st), a: t(a), b: t(b) }
-}
+// One <text> holding a list of cells: [glyph, y] pairs, each glyph centred on x = 0.
+const text = (cells, attrs = '') => cells.length ? `<text${attrs} x="${cells.map(() => 0).join(' ')}" y="${cells.map(c => f(c[1])).join(' ')}">${cells.map(c => c[0]).join('')}</text>` : ''
 
-// the drop's path: from above the top (head at -20) to past the foot, over `fall` of the cycle
+// A drop of light is a short string of glyphs that falls one row at a time (steps(), one step a row:
+// cheap to draw, and how a terminal would show it). Its rows grow dimmer away from the head, in four
+// bands, one <text> each with a flat fill. Brightness of each band, from just behind the head to the tail.
+const BANDS = [[0.18, 1], [0.42, 0.62], [0.7, 0.34], [1, 0.14]]
+
 function drop(c, i, thought) {
-  const { step, fall } = LAYERS[c.d]
-  const y0 = -20, y1 = H + c.L + 40
+  const L0 = LAYERS[c.d]
+  const { step, fall } = L0
+  const rows = Math.round(c.L / step)
+  const cells = []
+  for (let r = 1; r <= rows; r++) cells.push([glyph(), -r * step])
+  const bands = []
+  let from = 0
+  for (const [to, a] of BANDS) {
+    const end = Math.round(to * rows)
+    bands.push(text(cells.slice(from, end), ` fill="${L0.fill}" fill-opacity="${a}"`))
+    from = end
+  }
+  const head = text([[glyph(), 0]], ` fill="${L0.head}"`)
+  // the path: head from above the top to past the foot, a whole number of rows
+  const y0 = -step, n = Math.ceil((H + c.L + step * 2) / step), y1 = y0 + n * step
   const F = (fall * (y1 - y0)) / (H + 380) // the same speed for every column of a depth
   const share = Math.min(0.92, F / c.p)
   const name = `dr${i}`
-  kf(name, `0%{transform:translateY(${y0}px)}${f(share * 100)}%,100%{transform:translateY(${y1}px)}`)
+  kf(name, `0%{transform:translateY(${f(y0)}px)}${f(share * 100)}%,100%{transform:translateY(${f(y1)}px)}`)
   const delay = thought ? c.enter - c.p : -c.ph * c.p
-  css += `.${name}{animation:${name} ${c.p}s linear infinite ${f(delay)}s}\n`
-  // in the still, the head rests at `still` (or the drop is gone)
-  const rest = c.still == null ? y1 : c.still
-  return { name, rest, step }
+  css += `.${name}{animation:${name} ${c.p}s steps(${n}) infinite ${f(delay)}s}\n`
+  // the base state is the still: the head resting at `still`, or past the foot (gone)
+  const rest = c.still == null || thought ? y1 : Math.round(c.still / step) * step
+  return `<g class="${name}" transform="translate(0 ${f(rest)})">${bands.join('')}${head}</g>`
+}
+
+// The waiting glyphs: every column is faintly there even when no drop passes. A few cells hold two
+// glyphs that take turns (visibility, stepped: a switch, never a fade).
+function residue(c) {
+  const { step, fill } = LAYERS[c.d]
+  const still = [], a = [], b = []
+  for (let y = 0; y <= H; y += step) {
+    if (R() < 0.12) { a.push([glyph(), y]); b.push([glyph(), y]) } else still.push([glyph(), y])
+  }
+  const d = f(-R() * c.xf)
+  return `<g fill="${fill}" opacity="${RESIDUE[c.d]}">${text(still)}${text(a, ` class="sw" style="animation-duration:${c.xf}s;animation-delay:${d}s"`)}${text(b, ` class="sw sb" style="animation-duration:${c.xf}s;animation-delay:${d}s"`)}</g>`
 }
 
 function column(c, i, thought = false) {
-  const L0 = LAYERS[c.d]
-  const n = Math.ceil(H / L0.step) + 1
-  const g = strip(c.d, n)
-  const { name, rest, step } = drop(c, i, thought)
-  // masks: the trail (long, rising from nothing to full at the head) and the head (a short bright band)
-  defs += `<mask id="t${i}" maskUnits="userSpaceOnUse" x="-20" y="-40" width="40" height="${H + 80}"><rect class="${name}" transform="translate(0 ${rest})" x="-20" y="${-c.L}" width="40" height="${f(c.L + step * 0.6)}" fill="url(#trail)"/></mask>`
-  const hd = thought ? '' : `<mask id="h${i}" maskUnits="userSpaceOnUse" x="-20" y="-40" width="40" height="${H + 80}"><rect class="${name}" transform="translate(0 ${rest})" x="-20" y="${f(-step * 2.2)}" width="40" height="${f(step * 2.8)}" fill="url(#head)"/></mask>`
-  defs += hd
-  const xfA = `animation:xa ${c.xf}s ease-in-out infinite ${f(-R() * c.xf)}s`
-  const glyphs = `${g.st}<g class="ga" style="${xfA}">${g.a}</g><g class="gb" style="${xfA.replace('xa', 'xb')}">${g.b}</g>`
-  defs += `<g id="c${i}">${glyphs}</g>`
-  const glow = !thought && c.d !== 'far' ? `<g class="${name} hg" transform="translate(0 ${rest})"><ellipse cy="${f(-step * 0.4)}" rx="${f(L0.fs * 1.6)}" ry="${f(L0.fs * 3.2)}" fill="url(#glow)"/></g>` : ''
-  const residue = thought ? '' : `<use href="#c${i}" fill="${L0.fill}" opacity="${RESIDUE[c.d]}"/>`
-  return `<g transform="translate(${c.x} 0) scale(-1 1)" opacity="${c.o}" class="${c.d}">${residue}${glow}<use href="#c${i}" fill="${L0.fill}" mask="url(#t${i})"/>${thought ? '' : `<use class="hd" href="#c${i}" fill="${L0.head}" mask="url(#h${i})"/>`}</g>`
+  return `<g transform="translate(${c.x} 0) scale(-1 1)" opacity="${c.o}">${thought ? '' : residue(c)}${drop(c, i, thought)}</g>`
 }
 
 // draw far first, near last
@@ -125,37 +131,33 @@ const groups = { far: '', mid: '', near: '' }
 COLS.forEach((c, i) => { groups[c.d] += column(c, i) })
 let thoughts = ''
 THOUGHTS.forEach((c, k) => { thoughts += column(c, COLS.length + k, true) })
-// before its first fall and between falls a thought is gone; under reduce motion it stays gone
 const rain = order.map(d => `<g style="font-size:${LAYERS[d].fs}px">${groups[d]}</g>`).join('')
 
-kf('xa', '0%,38%{opacity:1}50%,88%{opacity:0}100%{opacity:1}')
-kf('xb', '0%,38%{opacity:0}50%,88%{opacity:1}100%{opacity:0}')
-kf('breathe', '0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}')
+kf('sw', '0%{visibility:visible}50%{visibility:hidden}')
+kf('breathe', '0%,100%{opacity:.55}50%{opacity:1}')
 
-const SHARED = `<linearGradient id="trail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff" stop-opacity=".26"/><stop offset=".72" stop-color="#fff" stop-opacity=".65"/><stop offset=".95" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity=".2"/></linearGradient>
-<linearGradient id="head" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".62" stop-color="#fff" stop-opacity=".75"/><stop offset=".8" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-<radialGradient id="glow"><stop offset="0" stop-color="#7dffa8" stop-opacity=".16"/><stop offset="1" stop-color="#7dffa8" stop-opacity="0"/></radialGradient>
-<radialGradient id="haze" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#0f4a24" stop-opacity=".5"/><stop offset=".35" stop-color="#0d3f1f" stop-opacity=".3"/><stop offset=".62" stop-color="#0b3519" stop-opacity=".11"/><stop offset=".84" stop-color="#0b3519" stop-opacity=".03"/><stop offset="1" stop-color="#0b3519" stop-opacity="0"/></radialGradient>
-<linearGradient id="ground" x1="0" y1="0" x2="1" y2=".3"><stop offset="0" stop-color="${GROUND}"/><stop offset=".6" stop-color="#040b06"/><stop offset="1" stop-color="#061209"/></linearGradient>
-<linearGradient id="vfadeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".13" stop-color="#fff"/><stop offset=".7" stop-color="#fff"/><stop offset=".93" stop-color="#fff" stop-opacity="0"/></linearGradient>
-<mask id="vfade" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="url(#vfadeG)"/></mask>`
+const SHARED = `<radialGradient id="haze" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#0f4a24" stop-opacity=".5"/><stop offset=".35" stop-color="#0d3f1f" stop-opacity=".3"/><stop offset=".62" stop-color="#0b3519" stop-opacity=".11"/><stop offset=".84" stop-color="#0b3519" stop-opacity=".03"/><stop offset="1" stop-color="#0b3519" stop-opacity="0"/></radialGradient>
+<linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${GROUND}"/><stop offset="1" stop-color="${GROUND}" stop-opacity="0"/></linearGradient>
+<linearGradient id="foot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${GROUND}" stop-opacity="0"/><stop offset="1" stop-color="${GROUND}"/></linearGradient>`
 
 const style = `<style>
 text{font-family:ui-monospace,Menlo,"SF Mono","Hiragino Sans","MS Gothic","Noto Sans Mono CJK JP",monospace;text-anchor:middle;dominant-baseline:central}
-.gb{opacity:0}
-.haze{opacity:.78;transform-box:fill-box;transform-origin:center;animation:breathe 71s ease-in-out infinite -20s}
-${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}.hd,.hg,.thought{display:none}}
+.sw{animation:sw 30s steps(1) infinite}.sb{animation-direction:reverse}
+.haze{opacity:.78;animation:breathe 71s steps(24) infinite -20s}
+${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>`
 
 // Anchored to the right edge, centred in height: on a phone only the band shows, on a wide window the
-// top and foot are cropped; the middle, where the words are, stays dark.
+// top and foot are cropped; the middle, where the words are, stays dark. The band fades out at its top
+// and foot under two still veils of the ground colour (a mask over moving type costs far more).
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMid slice">
 ${style}
-<defs>${SHARED}
-${defs}</defs>
+<defs>${SHARED}</defs>
 <rect width="${W}" height="${H}" fill="${GROUND}"/>
 <ellipse class="haze" cx="1560" cy="470" rx="340" ry="540" fill="url(#haze)"/>
-<g mask="url(#vfade)">${rain}<g class="thought" style="font-size:13px">${thoughts}</g></g>
+${rain}<g style="font-size:13px">${thoughts}</g>
+<rect width="${W}" height="${f(H * 0.13)}" fill="url(#top)"/>
+<rect y="${f(H * 0.7)}" width="${W}" height="${f(H * 0.3)}" fill="url(#foot)"/>
 </svg>`.replace(/\n\s*\n/g, '\n')
 
 // ── the poster: the same band, still, with only the lit stretch of each near and mid trail
@@ -181,8 +183,7 @@ const poster = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" 
 ${posterRain}
 </svg>`.replace(/\n/g, '')
 
-// the app draws nothing a <use> points at: every scene is written out in full
-const SVG = inlineUses(svg), POSTER_SVG = inlineUses(poster)
+const SVG = svg, POSTER_SVG = poster
 console.log(`digital-rain: ${SVG.length} characters, poster ${POSTER_SVG.length}`)
 if (POSTER_SVG.length >= 12000) throw new Error(`poster is ${POSTER_SVG.length} characters, over 12,000`)
 if (SVG.length >= 131072) throw new Error(`scene is ${SVG.length} characters, over 131,072`)

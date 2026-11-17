@@ -63,7 +63,7 @@ Dark only. The memory of an 8-bit computer loading from tape at night. Raster st
 
 ### `digital-rain`
 
-Dark only. A quiet curtain of green-phosphor glyphs held to the right edge, thinning toward the middle, on three depths. The glyphs stay where they are; a drop of light runs down each column at its own slow pace, a pale head leading, and now and then a glyph dissolves into another. Every few minutes a single dim column lights once far out in the empty field, like a thought crossing. Bright green accent; errors stay a muted red, warnings amber. Respects *reduce motion*.
+Dark only. A quiet curtain of green-phosphor glyphs held to the right edge, thinning toward the middle, on three depths. Every column is faintly there, and now and then two of its glyphs take turns; down it falls a drop of light, a short string of glyphs brightest just behind its pale head, one row at a time at its own slow pace, as a terminal would draw it. Every few minutes a single dim column lights once far out in the empty field, like a thought crossing. Bright green accent; errors stay a muted red, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -87,7 +87,7 @@ Dark only. The deep sea, almost black, breathing with two slow glows of teal and
 
 ### `koi-script`
 
-Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi circle slowly in the bottom-right corner, each on its own depth: a large, bright kohaku (bone white with vermilion patches), a smaller sanke with ink marks as well, and a small ogon in one pale gold, the deepest and closest to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`) and worn by all three in different coats: its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, and the frames dissolve into one another. In the near koi's wake, rings of dots open slowly; every few minutes a petal comes down in the middle of it all, drifts a little and fades. The layout is the golden ratio throughout: from the eye of the frame's golden spiral a second spiral winds into the corner, in the strip the conversation leaves open, and the koi swim three of its arcs, so circles and koi shrink by φ each time; the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade, with thin slow caustics on the pond floor; after dusk it is ink-teal going to indigo. The hour is read when the look is put on: a new session, or `/look koi-script` again, changes the dress. Vermilion accent. Respects *reduce motion*.
+Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi circle slowly in the bottom-right corner, each on its own depth: a large, bright kohaku (bone white with vermilion patches), a smaller sanke with ink marks as well, and a small ogon in one pale gold, the deepest and closest to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`) and worn by all three in different coats: its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, its frames turning like the pages of a flipbook. In the near koi's wake, rings of dots open slowly; every few minutes a petal comes down in the middle of it all, drifts a little and fades. The layout is the golden ratio throughout: from the eye of the frame's golden spiral a second spiral winds into the corner, in the strip the conversation leaves open, and the koi swim three of its arcs, so circles and koi shrink by φ each time; the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade, with thin slow caustics on the pond floor; after dusk it is ink-teal going to indigo. The hour is read when the look is put on: a new session, or `/look koi-script` again, changes the dress. Vermilion accent. Respects *reduce motion*.
 
 | Desktop, night | Desktop, day | Phone |
 |---|---|---|
@@ -121,6 +121,16 @@ the register of which looks are reworked.
    ```bash
    claude plugin test .
    ```
+   And check the scene as the desktop app will. The app throws away a scene that is not
+   well-formed XML or fails its validator, and it freezes one that costs too much to draw: it
+   times every frame, and a scene over its budget runs about 3 seconds, then stops on its first
+   frame. This script runs all three checks in headless Chrome for Testing
+   (`npx playwright install chromium`); `tools/release.sh` refuses a scene that fails it:
+   ```bash
+   node tools/qa/scenes.mjs <name>
+   ```
+   Keep the cost under 2.5 ms on the bench. What makes a frame cheap is in
+   [docs/DIRECTION.md](docs/DIRECTION.md).
 4. Screenshot it for this README (needs Google Chrome; set `CHROME` to use another path):
    ```bash
    node tools/preview.mjs <name>

@@ -37,14 +37,27 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    over the scene is light (blur 3 to 8, opacity 0.3 to 0.55) so the type of a glyph scene still reads.
 8. **Still is composed.** Under *reduce motion* every animation stops, and the frame left must be a
    finished picture: subject in place, no half-faded frames, no event caught mid-way.
-9. **Budget.** A scene under 131,072 characters (aim for half); a poster (below) under 12,000. And a
-   drawing budget, which matters more: the desktop app lets a scene run for a few seconds and then
-   stops it on its first frame when it animates too much type (found 2026-11-16 by taking abyssal
-   apart: at 9,500 glyphs and 50k characters with every `<use>` expanded it ran, at 12,900 glyphs and
-   61k it stopped). Keep a scene, `<use>` expanded (`tools/scenes/inline-uses.mjs`), under about
-   7,000 glyphs and 50k characters: fewer flipbook frames, fewer copies, a still frame for a far subject.
-10. **No `<use>`.** The desktop app draws nothing a `<use>` points at. Generators write the scene out
-   in full with `tools/scenes/inline-uses.mjs`; a copy has no id, so style by class, never by `#id`.
+9. **Budget.** A scene under 131,072 characters (aim for half); a poster (below) under 12,000. What
+   matters more is the cost of drawing one frame. The desktop app plays a scene as an image and times
+   each frame; when the mean over 3 s passes 5.56 ms it stops the scene for good on a still copy (the
+   "runs 3 seconds, then snaps to its first frame"). `node tools/qa/scenes.mjs` times it the same way:
+   aim under 2.5 ms, and `tools/release.sh` refuses anything over 4. What makes a frame cheap, measured
+   (2026-11-17, on this bench):
+   - **Switch, don't fade.** A flipbook of frames shown one at a time with `visibility` (or a strip of
+     frames moved by `translate`), timed with `steps()`, costs a sixth of the same frames cross-faded
+     with `opacity`: a group at `opacity:0` under a running fade is still drawn every frame.
+   - **`steps()` on every animation**, the slower the better: smooth timing redraws every frame.
+   - **One `<text>` per row**, never one per glyph; **flat fills** on moving type, not gradients; **no
+     masks** on moving parts; **few moving elements**.
+   - **Never flash.** No large, fast changes of brightness or of red: the app stops those too.
+   - **Write copies out.** The app draws `<use>`, but a copy written out is cheaper to draw (abyssal:
+     3.3 ms against 4.9). Generators pass their output through `tools/scenes/inline-uses.mjs`; a copy
+     has no id, so style it by class, never by `#id`.
+10. **Valid, or nothing.** The app throws away a scene that is not well-formed XML (one duplicate
+   attribute is enough) or that fails its validator: only `href="#id"` and `url(#id)`, no `data:`, no
+   backslash, no `<image>` or `<foreignObject>`, listed CSS functions and at-rules only. The still copy
+   it falls back on has every animation removed, so the base state must be the finished picture: nothing
+   at `opacity:0` waiting for a keyframe to fade it in.
 
 ## Making one
 
@@ -53,8 +66,8 @@ ASCII pines). The middle, where the conversation sits, stays clear.
   of the scene's composition, drawn by `/look preview`. The preview never embeds a whole scene: sixteen
   animated scenes in one message is more than the app will draw.
 - A look may carry a second dress for daylight (`day` in its `index.js`: its own palette and scene, from
-  the same generator and within the same budget), worn by the local hour, read when the look is put on. No timers:
-  with a plugin timer (`$.clock.every`) running, every backdrop in the desktop app stopped a few seconds in.
+  the same generator and within the same budget), worn by the local hour, read when the look is put on. No timers that
+  redraw the backdrop: each change to its tree replaces the scene and restarts its animations.
 - Check a scene in motion, not only in stills: render frames at 30 fps over 10 s and watch them.
 - Check it behind the app's glass with `node tools/preview.mjs <id>`, desktop and phone.
 
