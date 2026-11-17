@@ -268,7 +268,8 @@ kf('loadOff', `0%{visibility:visible}${pc(T_LOADING, C)}%{visibility:hidden}${pc
 // the moon's road takes turns between two shapes on the water, every 6 s
 kf('shA', '0%{visibility:visible}50%,100%{visibility:hidden}')
 kf('shB', '0%{visibility:hidden}50%,100%{visibility:visible}')
-kf('blink', '0%{visibility:visible}50%,100%{visibility:hidden}')
+// opacity, not visibility: each cursor's own animation sets visibility:visible, which would win over the group's
+kf('blink', '0%{opacity:1}50%,100%{opacity:0}')
 
 const cyc = `${C}s steps(1) infinite ${-OPEN}s`
 const style = `<style>
