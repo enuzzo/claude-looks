@@ -10,7 +10,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { frameSvg, render, trim } from './ascii3d.mjs'
-import { jellyBell, manta, turtle, turtleTex, whale, whaleTex } from './sea-creatures.mjs'
+import { jellyBell, manta } from './sea-creatures.mjs'
 import { glyphSvg, surface } from './glyph3d.mjs'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
@@ -70,7 +70,7 @@ function passage(name, { y0, dir, cycle, share, enter, bob, bobDur, pitch, scale
   return [`<g class="${depth}" transform="translate(0 ${y0})"><g class="${name}X"><g class="${name}Y"><g class="${name}P"><g transform="scale(${scale})">`, '</g></g></g></g></g>']
 }
 
-// ── the animals: a manta for the corner, a small turtle for its rare passes
+// ── the animals
 // The manta is drawn the way ASCII games like Effulgence draw their creatures (tools/scenes/glyph3d.mjs):
 // glyphs set on its own surface, in rows that bend with the wings, seen in perspective (the near wing's
 // glyphs larger and brighter), coloured along the span from violet through a pale core to teal, and
@@ -105,14 +105,12 @@ for (let i = 0; i < STRIPS; i++) {
   const lag = f(-((az / 1.6) * 0.32 + 1) * BEAT) // the tips follow the body
   const name = `wb${i}`
   kf(name, `0%,100%{transform:translateY(${f(-amp * 0.55)}px)}50%{transform:translateY(${f(amp * 0.45)}px)}`)
-  mantaBody += `<g style="animation:${name} ${BEAT}s ease-in-out infinite ${lag}s">${glyphSvg(pts, { scale: 150, size: 11.5, sizes: 4, colour: mantaColour })}</g>`
+  mantaBody += `<g style="animation:${name} ${BEAT}s ease-in-out infinite ${lag}s">${glyphSvg(pts, { scale: 150, size: 9.5, sizes: 4, colour: mantaColour })}</g>`
 }
 defs.push(`<g id="manta">${mantaBody}</g>`)
 // the poster's manta: the same pose sampled more sparsely, so the poster stays small
 stills.manta = `<g id="manta">${glyphSvg(surface(manta(1.2, -1), { x: [-1.3, 0.85], z: [-1.6, 1.6], step: 0.11, elev: 0.9, yaw: 0.45, dist: 2.6, ramp: ' .,:;-=+*#%' }), { scale: 150, size: 16, sizes: 2, colour: mantaColour })}</g>`
 const MANTA = '<use href="#manta"/>'
-// the turtle passes rarely and far: one pose, carried by its swim path
-const TURTLE = flipbook('turtle', t => turtle(t, 1), 1, { cols: 44, rows: 30, dx: 0.068, elev: 1.3, ramp: ' .,:;-=+*#' }, { tex: turtleTex(1), period: 9.5, colors: ['#cfe3b0', '#86b296', '#3f7a72', '#1f4a52'] })
 
 // ── the moon jellies, drawn like the manta: the bell's glyphs set on its dome in 3D, magenta at the crown
 // fading through violet to blue at the rim, the whole bell pulsing slowly (a squeeze, not a flipbook);
@@ -130,7 +128,7 @@ const TENTACLE = [[[255, 90, 220], [120, 110, 255], [70, 220, 255]], [[110, 120,
 const along = (stops, t) => { const k = t * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(k)), u = k - i; return stops[i].map((c, j) => c + (stops[i + 1][j] - c) * u) }
 function glyphJelly(id, pulse) {
   const pts = surface(jellyBell(0.9), { x: [-1, 1], z: [-1, 1], step: 0.085, elev: 0.5, yaw: 0, dist: 3, ramp: ' .,:;-=+*#%' })
-  const bell = glyphSvg(pts, { scale: 92, size: 10, sizes: 3, colour: p => {
+  const bell = glyphSvg(pts, { scale: 92, size: 8.5, sizes: 3, colour: p => {
     const r = Math.min(1, Math.hypot(p.x, p.z) / 0.82)
     const lv = Math.round((0.45 + 0.75 * p.v) * 4) / 4
     return [hex(mixBell(Math.round(r * 6) / 6).map(c => c * lv)), 1]
@@ -143,7 +141,7 @@ function glyphJelly(id, pulse) {
     const groups = new Map()
     for (let j = 0; j < n; j++) {
       const t = j / (n - 1)
-      const fs = f(11 - 4 * t)
+      const fs = f(9 - 3 * t)
       const col = hex(along(stops, t).map(c => c * (1 - 0.25 * t)))
       const key = `${fs}|${col}`
       if (!groups.has(key)) groups.set(key, [])
@@ -172,28 +170,58 @@ kf('trail', '0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}')
 glyphJelly('jellyA', 10.5)
 glyphJelly('jellyB', 12.2)
 
-// ── a shaft of light from the surface, falling on the manta and fraying into thin vertical streaks as
-// it sinks: a soft trapezoid of light, and over it streaks of every length, each fading along its own
-// length. Static, so it costs almost nothing; the water moves through it.
+// ── a shaft of light from the surface, falling on the manta and fraying as it sinks, in block glyphs:
+// columns of small ░▒▓ cells, on one grid, each column breaking into fainter and fainter runs toward
+// its ragged end, like light in a pixel-art sea. The glyphs are a pattern tile (drawn once, then
+// repeated), so a hundred columns cost almost nothing; under them a soft trapezoid of light.
 const SHAFT_X = 430, SHAFT_TOP = 150, SHAFT_FOOT = 230 // centre and half-widths at top and foot
-let streaks = ''
-for (let i = 0; i < 80; i++) {
-  const u = (R() * 2 - 1) * (0.7 + 0.3 * R()) // −1..1 across the shaft, denser toward its middle
-  const y0 = -60 + R() * 220
-  const len = 260 + R() ** 0.7 * 720 * (1 - Math.abs(u) * 0.55)
-  const x = SHAFT_X + u * (SHAFT_TOP + (SHAFT_FOOT - SHAFT_TOP) * ((y0 + len / 2) / H))
-  const w = f(1.5 + R() * 3.5)
-  streaks += `<rect x="${f(x)}" y="${f(y0)}" width="${w}" height="${f(len)}" fill="url(#streak)" opacity="${f(0.08 + R() * 0.2 * (1 - Math.abs(u) * 0.6))}"/>`
+const CELL_W = 4.8, CELL_H = 8 // a block glyph at font size 8
+const TILE_C = 12, TILE_R = 16
+let tile = ''
+for (let r = 0; r < TILE_R; r++) {
+  let row = ''
+  for (let c = 0; c < TILE_C; c++) { const v = R(); row += v < 0.42 ? '▓' : v < 0.78 ? '▒' : v < 0.94 ? '░' : ' ' }
+  tile += `<text x="0" y="${f(r * CELL_H)}">${row}</text>`
 }
-// darker, wider streaks either side, where the light does not reach
-for (let i = 0; i < 16; i++) {
+const RAYS_PATTERN = `<pattern id="rayP" width="${f(TILE_C * CELL_W)}" height="${TILE_R * CELL_H}" patternUnits="userSpaceOnUse"><g style="font-size:8px;fill:#7fe3f7;dominant-baseline:hanging">${tile}</g></pattern>`
+const snap = x => Math.round(x / CELL_W) * CELL_W
+// runs grouped by brightness: each level is one path of many rectangles, so the pattern is painted
+// a handful of times, not once per run
+const LEVELS = [0.26, 0.15, 0.08, 0.04]
+const runs = LEVELS.map(() => [])
+const addRun = (x, y, h, a) => { const k = LEVELS.findIndex(l => a >= l * 0.8); if (k >= 0) runs[k].push(`M${f(x)} ${y}h${f(CELL_W)}v${h}h${f(-CELL_W)}z`) }
+// one column every cell or two across the shaft, the middle brightest
+for (let x = snap(SHAFT_X - SHAFT_FOOT); x <= SHAFT_X + SHAFT_FOOT; x += CELL_W * (R() < 0.7 ? 1 : 2)) {
+  const u = (x - SHAFT_X) / SHAFT_FOOT
+  if (Math.abs(u) > 1 || R() < 0.12) continue
+  const edge = 1 - Math.abs(u) ** 1.6
+  let y = Math.round((-40 + R() * 120) / CELL_H) * CELL_H
+  const total = (300 + R() * 650) * (0.45 + 0.55 * edge)
+  let a = (0.16 + R() * 0.16) * edge
+  // runs, each shorter and fainter, with gaps between them: the ragged end
+  while (y < total && a > 0.012) {
+    const run = Math.round((40 + R() * 160) / CELL_H) * CELL_H
+    addRun(x, y, run, a)
+    y += run + Math.round((R() * 40) / CELL_H) * CELL_H
+    a *= 0.62
+  }
+}
+// dimmer columns either side, where the light hardly reaches
+for (let i = 0; i < 24; i++) {
   const side = i % 2 ? 1 : -1
-  const x = SHAFT_X + side * (SHAFT_FOOT + 20 + R() * 260)
-  streaks += `<rect x="${f(x)}" y="${f(R() * 200)}" width="${f(3 + R() * 6)}" height="${f(400 + R() * 600)}" fill="url(#streakDim)" opacity="${f(0.15 + R() * 0.25)}"/>`
+  const x = snap(SHAFT_X + side * (SHAFT_FOOT + 10 + R() * 300))
+  let y = Math.round((60 + R() * 260) / CELL_H) * CELL_H, a = 0.05 + R() * 0.06
+  while (y < H && a > 0.01) {
+    const run = Math.round((60 + R() * 220) / CELL_H) * CELL_H
+    addRun(x, y, run, a)
+    y += run + Math.round((R() * 60) / CELL_H) * CELL_H
+    a *= 0.7
+  }
 }
-// three trapezoids, each narrower and fainter, so the shaft's edges are soft, not drawn
-const trap = k => `<path d="M${f(SHAFT_X - SHAFT_TOP * k)} -20 L${f(SHAFT_X + SHAFT_TOP * k)} -20 L${f(SHAFT_X + SHAFT_FOOT * k)} ${H} L${f(SHAFT_X - SHAFT_FOOT * k)} ${H} Z" fill="url(#shaft)" opacity=".4"/>`
-const SHAFT = `${trap(1.15)}${trap(0.85)}${trap(0.55)}${streaks}`
+// two trapezoids, one narrower, so the glow under the columns has soft edges
+const trap = k => `<path d="M${f(SHAFT_X - SHAFT_TOP * k)} -20 L${f(SHAFT_X + SHAFT_TOP * k)} -20 L${f(SHAFT_X + SHAFT_FOOT * k)} ${H} L${f(SHAFT_X - SHAFT_FOOT * k)} ${H} Z" fill="url(#shaft)" opacity=".55"/>`
+const streaks = runs.map((r, k) => r.length ? `<path d="${r.join('')}" fill="url(#rayP)" opacity="${LEVELS[k]}"/>` : '').join('')
+const SHAFT = `${trap(1.1)}${trap(0.65)}${streaks}`
 
 // ── algae: strings of glyphs along a curve, as ASCII games draw their plants, larger at the root and
 // smaller toward the tip, colour lighting up toward the tip, each swaying slowly about its root. Lime
@@ -205,9 +233,8 @@ const ALGAE = {
 const FRONDS = [
   // x, root y, height, bend (+ right), kind, sway period (s)
   [70, 1010, 330, 0.8, 'lime', 23], [170, 1010, 380, 0.5, 'lime', 31], [236, 1014, 210, -0.9, 'lime', 19],
-  [630, 1012, 160, 0.7, 'lime', 27],
   [1190, 1012, 200, -0.7, 'magenta', 25], [1250, 1010, 290, 0.6, 'magenta', 33], [1360, 1010, 240, 0.9, 'magenta', 28],
-  [1420, 1012, 170, -0.8, 'magenta', 24],
+  
 ]
 let algae = ''
 FRONDS.forEach(([x, y, h, bend, kind, per], i) => {
@@ -220,7 +247,7 @@ FRONDS.forEach(([x, y, h, bend, kind, per], i) => {
     const off = (strand - 0.8) * 9 * (1 - t * 0.7)
     const gx = x + off + Math.sin(t * Math.PI * 0.9) * bend * h * 0.28 * t
     const gy = y - h * t - strand * 6
-    const fs = f(17 - 9 * t)
+    const fs = f(14 - 7 * t)
     const lv = 0.75 + 0.6 * t
     const col = hex(A.root.map((c, k) => (c + (A.tip[k] - c) * t) * (0.7 + 0.5 * lv)))
     const key = `${fs}|${col}`
@@ -244,21 +271,19 @@ function planktonTile(id, size, n, glyphs, fs, o0, o1) {
 }
 
 const DEFS = `<defs>
-<linearGradient id="shaft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd2f0" stop-opacity=".2"/><stop offset=".35" stop-color="#2aa6c8" stop-opacity=".1"/><stop offset=".8" stop-color="#16708f" stop-opacity=".04"/><stop offset="1" stop-color="#16708f" stop-opacity="0"/></linearGradient>
+<linearGradient id="shaft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd2f0" stop-opacity=".12"/><stop offset=".35" stop-color="#2aa6c8" stop-opacity=".06"/><stop offset=".8" stop-color="#16708f" stop-opacity=".025"/><stop offset="1" stop-color="#16708f" stop-opacity="0"/></linearGradient>
 <linearGradient id="streak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bff4ff" stop-opacity="0"/><stop offset=".18" stop-color="#bff4ff" stop-opacity=".8"/><stop offset=".45" stop-color="#5cd4ee" stop-opacity=".45"/><stop offset="1" stop-color="#2a9cbf" stop-opacity="0"/></linearGradient>
 <linearGradient id="streakDim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d5f74" stop-opacity="0"/><stop offset=".3" stop-color="#1d5f74" stop-opacity=".35"/><stop offset="1" stop-color="#0d3a4a" stop-opacity="0"/></linearGradient>
+${RAYS_PATTERN}
 <filter id="bloom" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 <linearGradient id="sea" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#061620"/><stop offset=".6" stop-color="#050f18"/><stop offset="1" stop-color="#040b13"/></linearGradient>
-<radialGradient id="tealGlow"><stop offset="0" stop-color="#14b8a6" stop-opacity=".46"/><stop offset=".55" stop-color="#0e6f7a" stop-opacity=".16"/><stop offset="1" stop-color="#145d66" stop-opacity="0"/></radialGradient>
-<radialGradient id="violetGlow"><stop offset="0" stop-color="#7b2ff0" stop-opacity=".34"/><stop offset=".6" stop-color="#4a1fa0" stop-opacity=".12"/><stop offset="1" stop-color="#2e2670" stop-opacity="0"/></radialGradient>
+<radialGradient id="tealGlow"><stop offset="0" stop-color="#14b8a6" stop-opacity=".36"/><stop offset=".55" stop-color="#0e6f7a" stop-opacity=".16"/><stop offset="1" stop-color="#145d66" stop-opacity="0"/></radialGradient>
+<radialGradient id="violetGlow"><stop offset="0" stop-color="#7b2ff0" stop-opacity=".26"/><stop offset=".6" stop-color="#4a1fa0" stop-opacity=".12"/><stop offset="1" stop-color="#2e2670" stop-opacity="0"/></radialGradient>
 <radialGradient id="jglow"><stop offset="0" stop-color="#9c88ff" stop-opacity=".14"/><stop offset="1" stop-color="#9c88ff" stop-opacity="0"/></radialGradient>
 ${planktonTile('plankton', 480, 34, '.·', 10, 0.25, 0.7)}
 ${defs.join('')}
 </defs>`
 
-// a rare visitor: the turtle rises along the right margin once in a long cycle, small and far
-kf('visit', `0%{transform:translate(-180px,260px)}${f(30)}%{transform:translate(120px,-760px)}${f(30.01)}%,100%{transform:translate(-180px,260px)}`)
-kf('visitA', '0%{opacity:0}4%{opacity:1}26%{opacity:1}30%,100%{opacity:0}')
 kf('orbitX', '0%,100%{transform:translateX(0)}50%{transform:translateX(60px)}')
 kf('orbitY', '0%,100%{transform:translateY(0)}50%{transform:translateY(-46px)}')
 kf('bank', '0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg)}')
@@ -274,13 +299,13 @@ pattern text{fill:#7fd6cc}
 .glowA{--x:-90px;--y:-50px;animation:breathe 67s ease-in-out infinite}.glowB{--x:80px;--y:60px;animation:breathe 89s ease-in-out infinite -30s}
 .oX{animation:orbitX 53s ease-in-out infinite}.oY{animation:orbitY 37s ease-in-out infinite -9s}.bank{animation:bank 41s ease-in-out infinite -6s}
 .manta{opacity:.95}.manta text,.algae text{dominant-baseline:auto}.algae{opacity:.9}
-.visit{opacity:0;animation:visit 487s linear infinite 70s,visitA 487s linear infinite 70s}.visitor{opacity:.32}
+
 .jdrift{animation:drift 83s ease-in-out infinite}.jelly{opacity:.9}.jelly text{dominant-baseline:auto}.bell{transform-origin:0 0;animation-name:pulse;animation-timing-function:ease-in-out;animation-iteration-count:infinite}.tw{animation-name:trail;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
-${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}.visit{opacity:0}}
+${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>`
 
 // Anchored bottom-left, the manta in the open field beside the sidebar (docs/DIRECTION.md, Layout); the
-// jellies and the rare turtle keep to the right, companions that may vanish behind the right panel.
+// jellies keep to the right, companions that may vanish behind the right panel.
 const svg = inlineUses(`<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice">
 ${style}
 ${DEFS}
@@ -291,7 +316,6 @@ ${DEFS}
 <g class="plank"><rect y="-480" width="${W}" height="${H + 480}" fill="url(#plankton)"/></g>
 <g class="jelly" filter="url(#bloom)"><g transform="translate(1250 420) scale(.8)"><g class="jdrift"><circle r="120" fill="url(#jglow)"/><use href="#jellyA"/></g></g>
 <g transform="translate(1390 640) scale(.5)"><g class="jdrift" style="animation-delay:-40s"><circle r="120" fill="url(#jglow)"/><use href="#jellyB"/></g></g></g>
-<g class="visitor"><g transform="translate(1450 900)"><g class="visit"><g transform="rotate(-74) scale(.62)">${TURTLE}</g></g></g></g>
 <g class="algae">${algae}</g>
 <g class="manta" transform="translate(420 760)"><g class="oX"><g class="oY"><g class="bank"><g filter="url(#bloom)">${MANTA}</g></g></g></g></g>
 </svg>`.replace(/\n\s*\n/g, '\n'))
@@ -300,8 +324,8 @@ ${DEFS}
 const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>text{font-family:ui-monospace,Menlo,monospace;font-size:${FS}px;white-space:pre;dominant-baseline:hanging}</style>
 <defs><linearGradient id="sea" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#061620"/><stop offset="1" stop-color="#040b13"/></linearGradient>
-<radialGradient id="tealGlow"><stop offset="0" stop-color="#14b8a6" stop-opacity=".46"/><stop offset="1" stop-color="#145d66" stop-opacity="0"/></radialGradient>
-<radialGradient id="violetGlow"><stop offset="0" stop-color="#7b2ff0" stop-opacity=".34"/><stop offset="1" stop-color="#2e2670" stop-opacity="0"/></radialGradient>
+<radialGradient id="tealGlow"><stop offset="0" stop-color="#14b8a6" stop-opacity=".36"/><stop offset="1" stop-color="#145d66" stop-opacity="0"/></radialGradient>
+<radialGradient id="violetGlow"><stop offset="0" stop-color="#7b2ff0" stop-opacity=".26"/><stop offset="1" stop-color="#2e2670" stop-opacity="0"/></radialGradient>
 ${stills.manta}${stills.jellyA}</defs>
 <rect width="${W}" height="${H}" fill="url(#sea)"/><circle cx="1300" cy="260" r="620" fill="url(#violetGlow)"/><circle cx="430" cy="820" r="560" fill="url(#tealGlow)"/>
 <g opacity=".5" transform="translate(1250 420) scale(.8)"><use href="#jellyA"/></g>

@@ -7,15 +7,15 @@ const { SCENE } = SCENE_MODULE
 export default {
   id: 'abyssal',
   label: 'Abyssal',
-  description: 'Slow teal water in ASCII: a raymarched turtle, manta and humpback, moon jellies, a drifting school of glyph fish.',
+  description: 'The deep sea in glowing glyphs set in 3D: a manta in a shaft of block-glyph light, magenta moon jellies, lime and magenta algae.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'abyssal', glass: { blur: 6, tint: '#041820', opacity: 0.34 } },
+    backdrop: { id: 'abyssal', glass: { blur: 8, tint: '#041820', opacity: 0.55 } },
   },
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'Dark teal open water under faint shafts of light, its animals made of ASCII characters: a green turtle, a manta ray, a humpback and calf far off, moon jellies and a school of tiny glyph fish',
+    alt: 'Dark teal deep water: low on the left a shaft of light made of columns of small block characters falls on a manta whose wings are made of glowing characters in violet, white and aquamarine; on the right two moon jellies of magenta and blue characters with trailing coloured tentacles; lime and magenta algae of characters sway at the bottom',
   },
 }

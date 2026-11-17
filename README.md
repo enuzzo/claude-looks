@@ -79,7 +79,7 @@ Dark only. A night sea set entirely in type. High on the left, beside the sideba
 
 ### `abyssal`
 
-Dark only. The deep sea, drawn the way ASCII games like Effulgence draw their worlds: glyphs set in 3D and glowing. Low on the left, beside the sidebar, a shaft of light falls from the surface and frays into thin streaks; in it a manta glides, its glyphs set on its own body in rows that bend with the wings, seen in perspective (the near wing's glyphs larger and brighter), coloured from electric violet through a white core to aquamarine, its wingbeat a slow wave running out to the tips. Far off on the right two moon jellies pulse, magenta crowns fading to blue at the rim, tentacles lit from magenta through blue to cyan; lime algae sway at the left, magenta ones at the right, and once every few minutes a sea turtle rises past in the margin. Sea-glass accent on deep teal. Respects *reduce motion*.
+Dark only. The deep sea, drawn the way ASCII games like Effulgence draw their worlds: glyphs set in 3D and glowing. Low on the left, beside the sidebar, a shaft of light falls from the surface in columns of small block glyphs (░▒▓) that fray into fainter and fainter runs as they sink; in it a manta glides, its glyphs set on its own body in rows that bend with the wings, seen in perspective (the near wing's glyphs larger and brighter), coloured from electric violet through a white core to aquamarine, its wingbeat a slow wave running out to the tips. Far off on the right two moon jellies pulse, magenta crowns fading to blue at the rim, tentacles lit from magenta through blue to cyan; lime algae sway at the left, magenta ones at the right. Sea-glass accent on deep teal. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
