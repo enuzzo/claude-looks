@@ -32,11 +32,20 @@ const C64 = {
   blue: '#2e2c9b', yellow: '#edf171', orange: '#8e5029', brown: '#553800', lred: '#c46c71', dgrey: '#4a4a4a',
   grey: '#7b7b7b', lgreen: '#a9ff9f', lblue: '#706deb', lgrey: '#b2b2b2',
 }
-const GROUND = ['#201d6e', '#18165a', '#141249']
-const BORDER = '#5a57c8' // the light-blue border, a step down
-const TYPE = '#8b88f0' // the screen's light-blue type
-const MONO = '#4f4cb8' // the one colour a picture loads in, before its colours
-const INK = { star: C64.lgrey, halo: '#3d3aa8', moon: '#e3e68c', ghost: '#34319a', horizon: C64.lblue, refl: '#c8cb66', wave: '#3b6f86' }
+// Two dresses: night (a crescent moon over a still sea) and day (the sun over the same sea, a few
+// clouds, birds), the day one on a lighter blue, nearer the machine's own. Run without DRESS, the script
+// runs itself once per dress and writes both into scene.js.
+const DRESS = process.env.DRESS
+const DAY = DRESS === 'day'
+const GROUND = DAY ? ['#262380', '#1f1c6e', '#1b1962'] : ['#201d6e', '#18165a', '#141249']
+const BORDER = DAY ? '#6c69e0' : '#5a57c8' // the light-blue border, a step down
+const TYPE = DAY ? '#a3a0ff' : '#8b88f0' // the screen's light-blue type
+const MONO = DAY ? '#5f5cd0' : '#4f4cb8' // the one colour a picture loads in, before its colours
+const GLOW = DAY ? '#4c49c4' : '#3b38a8'
+// ink names are the night's; by day the moon is the sun, the ghost a cloud, a star a bird
+const INK = DAY
+  ? { star: '#34318a', halo: '#5754c6', moon: C64.yellow, ghost: '#9a98c8', horizon: C64.cyan, refl: '#eef0a8', wave: '#4c96a0' }
+  : { star: C64.lgrey, halo: '#3d3aa8', moon: '#e3e68c', ghost: '#34319a', horizon: C64.lblue, refl: '#c8cb66', wave: '#3b6f86' }
 
 let css = ''
 const kf = (name, body) => { css += `@keyframes ${name}{${body}}\n` }
@@ -69,8 +78,20 @@ const HZ = 29 // the horizon line
 const STARS = [[7, 4], [18, 13], [27, 3], [35, 18], [62, 22], [65, 4], [11, 21], [60, 1], [41, 7], [3, 13]]
 const SEA_W = 31 // half-width of the sea's vignette
 
+const CLOUDS = [[17, 9, 9, 2.4], [29, 16, 7, 1.8], [64, 21, 6, 1.5]] // x, y, half-width, half-height
+const BIRDS = [[23, 5], [32, 8], [27, 11]]
+function daySky(x, y) {
+  const ds = Math.hypot(x - MX, y - MY)
+  if (ds <= 7) return 'moon'
+  if (ds < 15) { const t = 1 - (ds - 7) / 8; if (dith(x, y, 0.3 * t * t)) return 'halo' }
+  for (const [cx, cy, w, h] of CLOUDS) { const e = ((x - cx) / w) ** 2 + ((y - cy) / h) ** 2; if (e < 1 && dith(x, y, 1.15 - e)) return 'ghost' }
+  for (const [bx, by] of BIRDS) if ((y === by && Math.abs(x - bx) === 1) || (y === by + 1 && x === bx)) return 'star'
+  return null
+}
+
 function pixel(x, y, variant) {
   const dm = Math.hypot(x - MX, y - MY), dc = Math.hypot(x - CX, y - CY)
+  if (y < HZ && DAY) return daySky(x, y)
   if (y < HZ) {
     if (dm <= MR) return dc > CR ? 'moon' : dith(x, y, 0.22) ? 'ghost' : null // earthshine on the dark side
     if (dm < MR + 10) { const t = 1 - (dm - MR) / 10; if (dith(x, y, 0.27 * t * t)) return 'halo' }
@@ -173,10 +194,11 @@ kf('ship', `0%,${pc(SHIP0, C)}%{transform:translateX(${f(SX0 * PIX)}px)}${pc(SHI
 shown('shipOn', SHIP0, SHIP0 + SHIP_T)
 const ship = `<g class="shipOn"><g class="ship" transform="translate(${f(SX0 * PIX)} 0)"><g transform="translate(0 ${f(SY * PIX)}) scale(${f(PIX)})"><path d="${shipPath('#')}" fill="${C64.lgrey}"/><path d="${shipPath('=')}" fill="${C64.grey}"/></g></g></g>`
 
-// ── the log: the screen's type at the top left, 40 columns, one line every 20 units
-const FS_T = 15, LH = 20, TX = 112, TY = 64
+// ── the log: the screen's type just above the picture (the scene is cropped from the top on wide
+// windows), 40 columns, one line every 18 units
+const FS_T = 15, LH = 18, TX = 112, TY = 318
 const LOG = [
-  ['    **** NIGHT BASIC V2 ****', 0],
+  ['    **** HOME BASIC V2 ****', 0],
   [' 64K RAM SYSTEM  38911 BYTES FREE', 0],
   ['', 0],
   ['READY.', 0],
@@ -186,7 +208,7 @@ const LOG = [
   ['OK', T_OK],
   ['', 0],
   ['SEARCHING', T_SEARCH],
-  ['FOUND MOONRISE', T_FOUND],
+  [DAY ? 'FOUND SEASIDE' : 'FOUND MOONRISE', T_FOUND],
   ['LOADING', T_LOADING],
   ['READY.', T_READY],
   ['RUN', T_RUN],
@@ -253,7 +275,7 @@ ${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 
 const DEFS = `<defs>
 <linearGradient id="ground" x1="0" y1="0" x2="1" y2=".25"><stop offset="0" stop-color="${GROUND[0]}"/><stop offset=".3" stop-color="${GROUND[1]}"/><stop offset="1" stop-color="${GROUND[2]}"/></linearGradient>
-<radialGradient id="phos"><stop offset="0" stop-color="#3b38a8" stop-opacity=".38"/><stop offset=".5" stop-color="#2a2790" stop-opacity=".13"/><stop offset="1" stop-color="#2a2790" stop-opacity="0"/></radialGradient>
+<radialGradient id="phos"><stop offset="0" stop-color="${GLOW}" stop-opacity=".38"/><stop offset=".5" stop-color="#2a2790" stop-opacity=".13"/><stop offset="1" stop-color="#2a2790" stop-opacity="0"/></radialGradient>
 <pattern id="scanP" width="20" height="${f(PIX)}" patternUnits="userSpaceOnUse"><rect width="20" height="${f(PIX * 0.26)}" fill="#0b0a2a"/></pattern>
 </defs>`
 
@@ -276,7 +298,7 @@ const posterLog = LOG.map(([line], i) => line ? `<text y="${i * LH}">${line}</te
 const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>text{font-family:${FONT};font-size:${FS_P}px;white-space:pre;dominant-baseline:hanging}.tl text{font-size:${FS_T}px;fill:${TYPE}}</style>
 <defs><linearGradient id="ground" x1="0" y1="0" x2="1" y2=".25"><stop offset="0" stop-color="${GROUND[0]}"/><stop offset=".3" stop-color="${GROUND[1]}"/><stop offset="1" stop-color="${GROUND[2]}"/></linearGradient>
-<radialGradient id="phos"><stop offset="0" stop-color="#3b38a8" stop-opacity=".38"/><stop offset="1" stop-color="#2a2790" stop-opacity="0"/></radialGradient>
+<radialGradient id="phos"><stop offset="0" stop-color="${GLOW}" stop-opacity=".38"/><stop offset="1" stop-color="#2a2790" stop-opacity="0"/></radialGradient>
 <linearGradient id="fray" x1="0" y1="0" x2="1" y2="0"><stop offset=".5" stop-color="${BORDER}"/><stop offset="1" stop-color="${BORDER}" stop-opacity="0"/></linearGradient></defs>
 <rect width="${W}" height="${H}" fill="url(#ground)"/>
 <ellipse cx="${f(PX + PIC_W * K * 0.62)}" cy="${f(PY + PIC_H * K * 0.4)}" rx="330" ry="260" fill="url(#phos)"/>
@@ -286,8 +308,16 @@ const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" vie
 </svg>`.replace(/\n/g, '')
 
 const SVG = inlineUses(svg), POSTER_SVG = inlineUses(poster)
-console.log(`home-computer: ${SVG.length} characters, poster ${POSTER_SVG.length}; loaded at ${f(LOADED)} s, run at ${f(T_RUN)} s of ${C}`)
 if (POSTER_SVG.length >= 12000) throw new Error(`poster is ${POSTER_SVG.length} characters, over 12,000`)
 if (SVG.length >= 131072) throw new Error(`scene is ${SVG.length} characters, over 131,072`)
-writeFileSync(join(ROOT, 'hooks/looks/home-computer/scene.js'),
-  `// Generated by tools/scenes/home-computer.mjs: an 8-bit computer at night loading a picture from tape, in block glyphs.\nexport const SCENE = ${JSON.stringify(SVG)}\nexport const POSTER = ${JSON.stringify(POSTER_SVG)}\n`)
+if (DRESS) {
+  process.stdout.write(JSON.stringify({ SVG, POSTER_SVG }))
+} else {
+  const { execFileSync } = await import('node:child_process')
+  const me = fileURLToPath(import.meta.url)
+  const run = d => JSON.parse(execFileSync(process.execPath, [me], { env: { ...process.env, DRESS: d }, maxBuffer: 1 << 26 }).toString())
+  const night = run('night'), day = run('day')
+  console.log(`home-computer: night ${night.SVG.length} characters, day ${day.SVG.length}, poster ${night.POSTER_SVG.length}; loaded at ${f(LOADED)} s, run at ${f(T_RUN)} s of ${C}`)
+  writeFileSync(join(ROOT, 'hooks/looks/home-computer/scene.js'),
+    `// Generated by tools/scenes/home-computer.mjs: an 8-bit computer loading a picture from tape, in block glyphs, by night and by day.\nexport const SCENE = ${JSON.stringify(night.SVG)}\nexport const SCENE_DAY = ${JSON.stringify(day.SVG)}\nexport const POSTER = ${JSON.stringify(night.POSTER_SVG)}\n`)
+}

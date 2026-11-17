@@ -122,6 +122,7 @@ async function wear($: EngineInterface, id: string) {
   }
   const look = findLook(id)
   const set = await apply($, id)
+  $.ui.status(undefined) // clears a refusal shown at session start
 
   return set.isDrawn ? `Now wearing ${look?.label ?? id}.` : `Chose ${look?.label ?? id}; nothing draws here (${'reason' in set ? set.reason : 'unknown'}).`
 }
@@ -152,8 +153,12 @@ export const register: Register = on => {
     if (findLook(id) !== undefined) {
       const set = await apply($, id)
 
-      if (!set.isDrawn && 'reason' in set) {
+      // Only a refusal is worth a status line. A desktop session starts before its window attaches,
+      // so "no client draws themes yet" is normal there: the theme stands and draws once it does.
+      if (!set.isDrawn && 'reason' in set && set.reason.startsWith('the app refused')) {
         $.ui.status(set.reason)
+      } else {
+        $.ui.status(undefined)
       }
     }
 
