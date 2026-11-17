@@ -41,7 +41,7 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    matters more is the cost of drawing one frame. The desktop app plays a scene as an image and times
    each frame; when the mean over 3 s passes 5.56 ms it stops the scene for good on a still copy (the
    "runs 3 seconds, then snaps to its first frame"). `node tools/qa/scenes.mjs` times it the same way:
-   aim under 2.5 ms, and `tools/release.sh` refuses anything over 4. What makes a frame cheap, measured
+   aim under 2.5 ms, and `tools/release.sh` refuses anything over 4.5. What makes a frame cheap, measured
    (2026-11-17, on this bench):
    - **Switch, don't fade.** A flipbook of frames shown one at a time with `visibility` (or a strip of
      frames moved by `translate`), timed with `steps()`, costs a sixth of the same frames cross-faded

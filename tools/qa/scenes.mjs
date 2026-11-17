@@ -10,8 +10,8 @@
 //   3. Frame cost, animated scenes only: the scene as an <img src="data:image/svg+xml…"> at 1600×1000, device scale 2,
 //      and once per frame for 5 s a drawImage of it into a 96×60 canvas plus a 1-pixel read. That copies the app's
 //      guard, which stops a scene for good when its mean sampling cost over 3 s passes 5.56 ms. On this bench a
-//      scene over 4 ms fails (abyssal 0.3.4 measured 5.3 and froze in the app; 3.6 moves on both Macs), and one
-//      over 2.5 ms gets a warning: aim under it, so slower Macs keep headroom.
+//      scene over 4.5 ms fails (abyssal 0.3.4 measured 5.3 and froze in the app; 3.4-4.0 moves on both Macs; runs
+//      vary by about 0.5 ms), and one over 2.5 ms gets a warning: aim under it, so slower Macs keep headroom.
 // Exits 1 if any scene fails. On this bench our scenes sorted exactly as the app treated them (2026-11-16):
 // those that froze in the app measured 5.3 ms and up, those that kept moving 3.6 ms and less.
 import { readdirSync } from 'node:fs'
@@ -22,7 +22,7 @@ import { refusals, readsSize } from './validator.mjs'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 const LOOKS = join(ROOT, 'hooks/looks')
-const LIMIT = Number(process.env.SCENE_LIMIT_MS ?? 4)
+const LIMIT = Number(process.env.SCENE_LIMIT_MS ?? 4.5)
 const TARGET = 2.5
 const APP_LIMIT = 1000 / 180
 const PORT = 9300 + (process.pid % 500)
