@@ -183,6 +183,8 @@ for (let r = 0; r < TILE_R; r++) {
   for (let c = 0; c < TILE_C; c++) { const v = R(); row += v < 0.42 ? '▓' : v < 0.78 ? '▒' : v < 0.94 ? '░' : ' ' }
   tile += `<text x="0" y="${f(r * CELL_H)}">${row}</text>`
 }
+// a second, paler tile for the light that flares now and then
+const RAYS_PATTERN_W = `<pattern id="rayW" width="${f(TILE_C * CELL_W)}" height="${TILE_R * CELL_H}" patternUnits="userSpaceOnUse"><g style="font-size:8px;fill:#d8fbff;dominant-baseline:hanging">${tile}</g></pattern>`
 const RAYS_PATTERN = `<pattern id="rayP" width="${f(TILE_C * CELL_W)}" height="${TILE_R * CELL_H}" patternUnits="userSpaceOnUse"><g style="font-size:8px;fill:#7fe3f7;dominant-baseline:hanging">${tile}</g></pattern>`
 const snap = x => Math.round(x / CELL_W) * CELL_W
 // runs grouped by brightness: each level is one path of many rectangles, so the pattern is painted
@@ -220,8 +222,21 @@ for (let i = 0; i < 24; i++) {
 }
 // two trapezoids, one narrower, so the glow under the columns has soft edges
 const trap = k => `<path d="M${f(SHAFT_X - SHAFT_TOP * k)} -20 L${f(SHAFT_X + SHAFT_TOP * k)} -20 L${f(SHAFT_X + SHAFT_FOOT * k)} ${H} L${f(SHAFT_X - SHAFT_FOOT * k)} ${H} Z" fill="url(#shaft)" opacity=".55"/>`
-const streaks = runs.map((r, k) => r.length ? `<path d="${r.join('')}" fill="url(#rayP)" opacity="${LEVELS[k]}"/>` : '').join('')
-const SHAFT = `${trap(1.1)}${trap(0.65)}${streaks}`
+// the light moves a little, like caustics: each level of columns breathes on its own slow period
+// (co-prime, so they never line up), and the whole shaft leans a few units one way and the other
+const BREATH = [13, 19, 23, 29]
+LEVELS.forEach((l, k) => kf(`ray${k}`, `0%,100%{opacity:${l}}50%{opacity:${f(l * 0.45)}}`))
+const streaks = runs.map((r, k) => r.length ? `<path d="${r.join('')}" fill="url(#rayP)" opacity="${LEVELS[k]}" style="animation:ray${k} ${BREATH[k]}s ease-in-out infinite ${f(-R() * BREATH[k])}s"/>` : '').join('')
+// now and then a few columns near the middle light up paler, swell and fade, like sun through a wave
+const flare = []
+for (let i = 0; i < 14; i++) {
+  const x = snap(SHAFT_X + (R() * 2 - 1) * SHAFT_TOP * 0.8)
+  const y = Math.round((R() * 80) / CELL_H) * CELL_H, h = Math.round((160 + R() * 320) / CELL_H) * CELL_H
+  flare.push(`M${f(x)} ${y}h${f(CELL_W)}v${h}h${f(-CELL_W)}z`)
+}
+kf('flare', '0%,72%,100%{opacity:0}84%{opacity:.22}')
+kf('lean', `0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}`)
+const SHAFT = `${trap(1.1)}${trap(0.65)}<g style="animation:lean 41s ease-in-out infinite">${streaks}<path d="${flare.join('')}" fill="url(#rayW)" opacity="0" style="animation:flare 53s ease-in-out infinite -20s"/></g>`
 
 // ── algae: strings of glyphs along a curve, as ASCII games draw their plants, larger at the root and
 // smaller toward the tip, colour lighting up toward the tip, each swaying slowly about its root. Lime
@@ -274,7 +289,7 @@ const DEFS = `<defs>
 <linearGradient id="shaft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fd2f0" stop-opacity=".12"/><stop offset=".35" stop-color="#2aa6c8" stop-opacity=".06"/><stop offset=".8" stop-color="#16708f" stop-opacity=".025"/><stop offset="1" stop-color="#16708f" stop-opacity="0"/></linearGradient>
 <linearGradient id="streak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bff4ff" stop-opacity="0"/><stop offset=".18" stop-color="#bff4ff" stop-opacity=".8"/><stop offset=".45" stop-color="#5cd4ee" stop-opacity=".45"/><stop offset="1" stop-color="#2a9cbf" stop-opacity="0"/></linearGradient>
 <linearGradient id="streakDim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d5f74" stop-opacity="0"/><stop offset=".3" stop-color="#1d5f74" stop-opacity=".35"/><stop offset="1" stop-color="#0d3a4a" stop-opacity="0"/></linearGradient>
-${RAYS_PATTERN}
+${RAYS_PATTERN}${RAYS_PATTERN_W}
 <filter id="bloom" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 <linearGradient id="sea" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#061620"/><stop offset=".6" stop-color="#050f18"/><stop offset="1" stop-color="#040b13"/></linearGradient>
 <radialGradient id="tealGlow"><stop offset="0" stop-color="#14b8a6" stop-opacity=".36"/><stop offset=".55" stop-color="#0e6f7a" stop-opacity=".16"/><stop offset="1" stop-color="#145d66" stop-opacity="0"/></radialGradient>
@@ -284,7 +299,12 @@ ${planktonTile('plankton', 480, 34, '.·', 10, 0.25, 0.7)}
 ${defs.join('')}
 </defs>`
 
-kf('orbitX', '0%,100%{transform:translateX(0)}50%{transform:translateX(60px)}')
+// The manta only ever swims forward, along its heading (left and a little up on screen): it comes in
+// small and far from behind, grows to its place in the light, glides there a while, then swims on,
+// shrinking away until it is gone; after a pause it comes again. One journey every JOURNEY seconds.
+const JOURNEY = 150, HEAD = [-0.935, -0.355], REACH = 500
+const at = (d, k = 1) => `translate(${f(HEAD[0] * d)}px,${f(HEAD[1] * d)}px) scale(${k})`
+kf('journey', `0%{transform:${at(-REACH, 0.35)};opacity:0}10%{opacity:1}38%{transform:${at(0)}}62%{transform:${at(45)}}86%{transform:${at(REACH, 0.35)};opacity:1}92%,100%{transform:${at(REACH, 0.35)};opacity:0}`)
 kf('orbitY', '0%,100%{transform:translateY(0)}50%{transform:translateY(-46px)}')
 kf('bank', '0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg)}')
 kf('breathe', '0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--x),var(--y)) scale(1.15)}')
@@ -297,7 +317,7 @@ text{font-family:ui-monospace,Menlo,"SF Mono","DejaVu Sans Mono",Consolas,monosp
 pattern text{fill:#7fd6cc}
 .plank{animation:fall 240s linear infinite;opacity:.35}
 .glowA{--x:-90px;--y:-50px;animation:breathe 67s ease-in-out infinite}.glowB{--x:80px;--y:60px;animation:breathe 89s ease-in-out infinite -30s}
-.oX{animation:orbitX 53s ease-in-out infinite}.oY{animation:orbitY 37s ease-in-out infinite -9s}.bank{animation:bank 41s ease-in-out infinite -6s}
+.oX{animation:journey ${JOURNEY}s ease-in-out infinite ${f(-0.45 * JOURNEY)}s}.oY{animation:orbitY 37s ease-in-out infinite -9s}.bank{animation:bank 41s ease-in-out infinite -6s}
 .manta{opacity:.95}.manta text,.algae text{dominant-baseline:auto}.algae{opacity:.9}
 
 .jdrift{animation:drift 83s ease-in-out infinite}.jelly{opacity:.9}.jelly text{dominant-baseline:auto}.bell{transform-origin:0 0;animation-name:pulse;animation-timing-function:ease-in-out;animation-iteration-count:infinite}.tw{animation-name:trail;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
