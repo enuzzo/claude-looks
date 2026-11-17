@@ -13,7 +13,18 @@ const OFF = 'off'
 const PREVIEW = 'preview'
 const current = atom({ plugin: 'looks', key: 'current' } as const, DEFAULT_LOOK)
 
-const findLook = (id: string) => LOOKS.find(look => look.id === id)
+// Looks renamed in 0.5 (shorter names, no hyphens): a stored choice or a typed name in the old
+// spelling still finds its look, and the stored one is rewritten.
+const RENAMED: Readonly<Record<string, string>> = {
+  'synthwave-sunset': 'synthwave',
+  'home-computer': 'basic',
+  'digital-rain': 'rain',
+  'ascii-tide': 'tide',
+  'koi-script': 'koi',
+}
+const renamed = (id: string) => RENAMED[id] ?? id
+
+const findLook = (id: string) => LOOKS.find(look => look.id === renamed(id))
 
 // The backdrop names the plugin that set it; installed from a marketplace the
 // name may carry it (`looks@claude-looks`).
@@ -76,6 +87,16 @@ for (const look of LOOKS) {
     }
   }
 }
+// a backdrop the app still holds under an old name (`koi-script`, `koi-script-day`) draws the new scene
+for (const [old, now] of Object.entries(RENAMED)) {
+  for (const suffix of ['', '-day']) {
+    const scene = SCENES.get(now + suffix)
+
+    if (scene !== undefined) {
+      SCENES.set(old + suffix, scene)
+    }
+  }
+}
 
 async function apply($: EngineInterface, id: string) {
   const look = findLook(id)
@@ -129,7 +150,14 @@ async function wear($: EngineInterface, id: string) {
 
 async function storedLook($: EngineInterface) {
   const stored = await $.store.get(STORE_KEY)
-  return typeof stored === 'string' ? stored : DEFAULT_LOOK
+
+  if (typeof stored !== 'string') {
+    return DEFAULT_LOOK
+  }
+  if (renamed(stored) !== stored) {
+    await $.store.set(STORE_KEY, renamed(stored))
+  }
+  return renamed(stored)
 }
 
 function listText(worn: string) {
@@ -166,7 +194,7 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'look' }, async ($, e) => {
-    const wanted = e.args.trim().toLowerCase()
+    const wanted = renamed(e.args.trim().toLowerCase())
 
     if (wanted === '' || wanted === PREVIEW) {
       return { text: listText(await storedLook($)) }

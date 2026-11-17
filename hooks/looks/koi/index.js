@@ -5,13 +5,13 @@ const { SCENE, SCENE_DAY } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
-  id: 'koi-script',
-  label: 'Koi script',
+  id: 'koi',
+  label: 'Koi',
   description: 'A still pond from above, in glyphs: three raymarched ASCII koi (a kohaku, a sanke, a pale ogon) circling on a golden spiral, rings of dots in the near one’s wake, a rare petal. Night water after dusk, jade water by day.',
   problems: [...problems, ...dayProblems],
   args: {
     colors: theme,
-    backdrop: { id: 'koi-script', glass: { blur: 3, tint: '#07141c', opacity: 0.3 } },
+    backdrop: { id: 'koi', glass: { blur: 3, tint: '#07141c', opacity: 0.3 } },
   },
   scene: {
     source: SCENE,
@@ -22,7 +22,7 @@ export default {
     hours: [7, 19],
     args: {
       colors: dayTheme,
-      backdrop: { id: 'koi-script-day', glass: { blur: 3, tint: '#0a201e', opacity: 0.3 } },
+      backdrop: { id: 'koi-day', glass: { blur: 3, tint: '#0a201e', opacity: 0.3 } },
     },
     scene: {
       source: SCENE_DAY,

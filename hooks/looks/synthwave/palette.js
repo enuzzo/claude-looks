@@ -2,7 +2,7 @@ import { makeColors } from '../../make-colors.js'
 
 // Night sky over a neon horizon: violet-tinted grays, hot pink accent.
 export const { theme, problems } = makeColors({
-  label: 'Synthwave sunset',
+  label: 'Synthwave',
   only: 'dark',
   codeTheme: { dark: 'synthwave-84' },
   roles: { accent: '#ff2fa8', danger: '#ff4d5e', success: '#2ef2b3', warning: '#ffb13b', pro: '#a678ff' },

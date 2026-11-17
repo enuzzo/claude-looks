@@ -7,7 +7,7 @@ const roles = { accent: '#9895ff', danger: '#f0959a', success: '#a9ff9f', warnin
 const git = { added: '#a9ff9f', removed: '#f0959a', modified: '#edf171', merged: '#d39be0' }
 
 export const { theme, problems } = makeColors({
-  label: 'Home computer',
+  label: 'Basic',
   only: 'dark',
   roles,
   dark: {
@@ -27,7 +27,7 @@ export const { theme, problems } = makeColors({
 })
 
 export const { theme: dayTheme, problems: dayProblems } = makeColors({
-  label: 'Home computer (day)',
+  label: 'Basic (day)',
   only: 'dark',
   roles: { ...roles, accent: '#aeabff', danger: '#f6a5a9', pro: '#dfb0ea' },
   dark: {

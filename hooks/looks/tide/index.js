@@ -5,13 +5,13 @@ const { SCENE } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
-  id: 'ascii-tide',
-  label: 'ASCII tide',
+  id: 'tide',
+  label: 'Tide',
   description: 'A night sea set in type: a ray-cast ASCII moon high on the left, slow swells of glyphs, its light shimmering on the water; minutes apart, a star falls in.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'ascii-tide', glass: { blur: 3, tint: '#070a17', opacity: 0.34 } },
+    backdrop: { id: 'tide', glass: { blur: 3, tint: '#070a17', opacity: 0.34 } },
   },
   scene: {
     source: SCENE,

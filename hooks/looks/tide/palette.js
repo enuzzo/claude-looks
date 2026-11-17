@@ -2,7 +2,7 @@ import { makeColors } from '../../make-colors.js'
 
 // A night sea set in type: ink-indigo grays, moon-white text, the mint of a falling star as accent.
 export const { theme, problems } = makeColors({
-  label: 'ASCII tide',
+  label: 'Tide',
   only: 'dark',
   roles: { accent: '#5cf2d6', danger: '#ff6b7a', success: '#9be86a', warning: '#ffc857', pro: '#9fa8ff' },
   dark: {

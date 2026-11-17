@@ -5,13 +5,13 @@ const { SCENE, SCENE_DAY } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
-  id: 'home-computer',
-  label: 'Home computer',
+  id: 'basic',
+  label: 'Basic',
   description: 'An 8-bit computer of the C64 kind: blue screen, light-blue border and type, a picture loading from tape in block glyphs, a moon by night and the sun by day.',
   problems: [...problems, ...dayProblems],
   args: {
     colors: theme,
-    backdrop: { id: 'home-computer', glass: { blur: 5, tint: '#16144f', opacity: 0.42 } },
+    backdrop: { id: 'basic', glass: { blur: 5, tint: '#16144f', opacity: 0.42 } },
   },
   scene: {
     source: SCENE,
@@ -22,7 +22,7 @@ export default {
     hours: [7, 19],
     args: {
       colors: dayTheme,
-      backdrop: { id: 'home-computer-day', glass: { blur: 5, tint: '#1c1a64', opacity: 0.42 } },
+      backdrop: { id: 'basic-day', glass: { blur: 5, tint: '#1c1a64', opacity: 0.42 } },
     },
     scene: {
       source: SCENE_DAY,

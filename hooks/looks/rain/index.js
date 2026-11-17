@@ -5,13 +5,13 @@ const { SCENE } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
-  id: 'digital-rain',
-  label: 'Digital rain',
+  id: 'rain',
+  label: 'Rain',
   description: 'A slow curtain of green glyph rain hanging by the sidebar on the left of a dark screen, bright green accents.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'digital-rain', glass: { blur: 3, tint: '#050c07', opacity: 0.3 } },
+    backdrop: { id: 'rain', glass: { blur: 3, tint: '#050c07', opacity: 0.3 } },
   },
   scene: {
     source: SCENE,

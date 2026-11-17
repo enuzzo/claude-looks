@@ -2,7 +2,7 @@ import { makeColors } from '../../make-colors.js'
 
 // Green-phosphor glyphs falling on near-black: green-tinted grays, bright green accent.
 export const { theme, problems } = makeColors({
-  label: 'Digital rain',
+  label: 'Rain',
   only: 'dark',
   roles: { accent: '#3dff7a', danger: '#e0605a', success: '#7dffa8', warning: '#e8b440', pro: '#7fd6c2' },
   dark: {

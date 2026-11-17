@@ -23,13 +23,22 @@ function engine(on: Parameters<TestBody>[1], stored: unknown) {
   return { store }
 }
 
-test('a new session starts on synthwave-sunset', async ($, on) => {
+test('a new session starts on synthwave', async ($, on) => {
   const seen = engine(on, undefined)
 
   on('command.run', () => ({ text: 'engine' }))
   await $.session.start(START)
   expect(seen.store.has('look')).toBe(false)
-  expect((await $.command.run(look(''))).text).toMatch(/▸ synthwave-sunset/)
+  expect((await $.command.run(look(''))).text).toMatch(/▸ synthwave/)
+})
+
+test('a look stored under its old name is found and stored again under the new one', async ($, on) => {
+  const seen = engine(on, 'koi-script')
+
+  on('command.run', () => ({ text: 'engine' }))
+  await $.session.start(START)
+  expect(seen.store.get('look')).toBe('koi')
+  expect((await $.command.run(look(''))).text).toMatch(/▸ koi/)
 })
 
 test('a session after /look off stays off', async ($, on) => {
@@ -47,15 +56,15 @@ test('/look lists, refuses an unknown name and switches (off needs the real them
   await $.session.start(START)
 
   const list = await $.command.run(look(''))
-  expect(list.text).toMatch(/▸ synthwave-sunset/)
+  expect(list.text).toMatch(/▸ synthwave/)
 
   const unknown = await $.command.run(look('nope'))
   expect(unknown.text).toMatch(/No look named/)
 
   await seen.store.set('look', 'off')
   const back = await $.command.run(look('Synthwave-Sunset'))
-  expect(back.text).toMatch(/Synthwave sunset/)
-  expect(seen.store.get('look')).toBe('synthwave-sunset')
+  expect(back.text).toMatch(/Synthwave/)
+  expect(seen.store.get('look')).toBe('synthwave')
 })
 
 const OUTPUT = (args: string, surface: 'desktop' | 'terminal') => ({
@@ -161,8 +170,8 @@ test('the backdrop draws every look that has a scene', async ($, on) => {
 })
 
 // A look with a daylight dress picks it by the local hour, each time it is put on.
-test('koi-script wears jade water by day and night water after dusk', async ($, on) => {
-  engine(on, 'koi-script')
+test('koi wears jade water by day and night water after dusk', async ($, on) => {
+  engine(on, 'koi')
   let hour = 12
   const worn: unknown[] = []
   on('clock.now', () => ({ value: new Date(2026, 10, 16, hour).getTime() }))
@@ -176,12 +185,12 @@ test('koi-script wears jade water by day and night water after dusk', async ($, 
 
   await $.session.start(START)
   hour = 22
-  await $.command.run(look('koi-script'))
+  await $.command.run(look('koi'))
   hour = 7
-  await $.command.run(look('koi-script'))
-  expect(worn).toEqual(['koi-script-day', 'koi-script', 'koi-script-day'])
+  await $.command.run(look('koi'))
+  expect(worn).toEqual(['koi-day', 'koi', 'koi-day'])
 
-  for (const id of ['koi-script', 'koi-script-day']) {
+  for (const id of ['koi', 'koi-day']) {
     const ui = await $.ui.mount(BACKDROP(id, 'looks', 'desktop'))
     expect((await ui.findAll({ type: 'Svg' })).length).toBe(1)
     await ui.unmount()

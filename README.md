@@ -3,7 +3,7 @@
 Looks for the Claude desktop and mobile apps: a color theme, and sometimes a slowly moving
 scene behind the conversation. One plugin, `looks`, many looks, switched with `/look`.
 
-![Synthwave sunset](docs/screenshots/synthwave-sunset-scene.png)
+![Synthwave](docs/screenshots/synthwave-scene.png)
 
 > The terminal and editor integrations draw no looks; the desktop and mobile apps do.
 > An unofficial, community collection.
@@ -30,7 +30,7 @@ In the desktop app, where `/plugin` does not run: click **+** next to the prompt
 | `/look <name>` | wears a look; it is remembered, and every new session starts with it |
 | `/look off` | back to the app's own look |
 
-A fresh install wears `synthwave-sunset`.
+A fresh install wears `synthwave`.
 
 > The moving scenes are drawn by the app's backdrop layer, which the desktop app is still rolling
 > out: where it is not on yet, a look brings its colors and no scene. Nothing to change in the
@@ -45,37 +45,37 @@ A fresh install wears `synthwave-sunset`.
 
 ## The looks
 
-### `synthwave-sunset`
+### `synthwave`
 
 Dark only. A synthwave dusk kept low and quiet, to work beside for hours, and made only of type. Low on the left, beside the sidebar, a sun set in a halftone of glyphs sits on the horizon, cut by the bands such suns have, between low ridges of slope glyphs. Below it the floor is a field of dots in perspective, the crossings of a neon grid with the lines left out, drifting toward you one row every few seconds. The sky goes from ink to a dusk violet, with a few glyph stars that change shape now and then. Once in a while a light runs along the horizon or a star falls. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
-| ![Synthwave sunset on desktop](docs/screenshots/synthwave-sunset-dark-desktop.png) | <img src="docs/screenshots/synthwave-sunset-dark-mobile.png" alt="Synthwave sunset on a phone" width="260"> |
+| ![Synthwave on desktop](docs/screenshots/synthwave-dark-desktop.png) | <img src="docs/screenshots/synthwave-dark-mobile.png" alt="Synthwave on a phone" width="260"> |
 
-### `home-computer`
+### `basic`
 
 Dark only, in two dresses chosen by the hour. An 8-bit home computer of the C64 kind left on, in its own sixteen colours taken down for hours of work: the screen's blue for the ground and the app's surfaces, its light-blue type for the accent. The light-blue border runs down the left edge. At the top, beside the sidebar, in uppercase type, the machine's log: READY., LOAD, PRESS PLAY ON TAPE, SEARCHING, FOUND MOONRISE, LOADING, and a cursor blinking under RUN while the picture holds. While it loads, slow raster stripes in the palette's colours rise through the border, and low on the right, between the conversation and the right panel, a small picture in quadrant blocks, with no frame, its edges thinning out into the blue (at night a crescent moon over a still sea; from 7 in the morning to 7 in the evening the sun over the same sea, with clouds and birds, on a lighter blue) arrives line by line, first in one colour, then coloured in row by row after RUN. It holds for minutes, the moon's road shifting on the water; now and then a small sprite ship sails across. Then the screen clears to a lone cursor, and the machine starts again. Light-blue accent; errors go light red, successes light green, warnings yellow. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
-| ![Home computer on desktop](docs/screenshots/home-computer-dark-desktop.png) | <img src="docs/screenshots/home-computer-dark-mobile.png" alt="Home computer on a phone" width="260"> |
+| ![Basic on desktop](docs/screenshots/basic-dark-desktop.png) | <img src="docs/screenshots/basic-dark-mobile.png" alt="Basic on a phone" width="260"> |
 
-### `digital-rain`
+### `rain`
 
 Dark only. A quiet curtain of green-phosphor glyphs hanging from the sidebar's edge on the left, thinning toward the middle, on three depths. Every column is faintly there, and now and then two of its glyphs take turns; down it falls a drop of light, a short string of glyphs brightest just behind its pale head, one row at a time at its own slow pace, as a terminal would draw it. Every few minutes a single dim column lights once far out in the empty field, like a thought crossing. Bright green accent; errors stay a muted red, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
-| ![Digital rain on desktop](docs/screenshots/digital-rain-dark-desktop.png) | <img src="docs/screenshots/digital-rain-dark-mobile.png" alt="Digital rain on a phone" width="260"> |
+| ![Rain on desktop](docs/screenshots/rain-dark-desktop.png) | <img src="docs/screenshots/rain-dark-mobile.png" alt="Rain on a phone" width="260"> |
 
-### `ascii-tide`
+### `tide`
 
 Dark only. A night sea set entirely in type. High on the left, beside the sidebar, a moon ray-cast into glyphs, maria and craters and all; below it, rows of `. - ~ =` swell slowly toward you in perspective, and its light shimmers on the water in a road of brighter glyphs. Minutes apart, a star falls into the sea and rings of `o` open where it lands. Mint accent on ink-blue. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
-| ![ASCII tide on desktop](docs/screenshots/ascii-tide-dark-desktop.png) | <img src="docs/screenshots/ascii-tide-dark-mobile.png" alt="ASCII tide on a phone" width="260"> |
+| ![Tide on desktop](docs/screenshots/tide-dark-desktop.png) | <img src="docs/screenshots/tide-dark-mobile.png" alt="Tide on a phone" width="260"> |
 
 ### `abyssal`
 
@@ -85,13 +85,13 @@ Dark only. The deep sea, almost black, breathing with two slow glows of teal and
 |---|---|
 | ![Abyssal on desktop](docs/screenshots/abyssal-dark-desktop.png) | <img src="docs/screenshots/abyssal-dark-mobile.png" alt="Abyssal on a phone" width="260"> |
 
-### `koi-script`
+### `koi`
 
-Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi circle slowly low on the left, beside the sidebar, each on its own depth: a large, bright kohaku (bone white with vermilion patches), a smaller sanke with ink marks as well, and a small ogon in one pale gold, the deepest and closest to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`) and worn by all three in different coats: its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, its frames turning like the pages of a flipbook. In the near koi's wake, rings of dots open slowly; every few minutes a petal comes down in the middle of it all, drifts a little and fades. The layout is the golden ratio throughout: from the eye of the frame's golden spiral a second spiral is drawn, then the whole of it is moved into the strip beside the sidebar that no panel covers, and the koi swim three of its arcs, so circles and koi shrink by φ each time; the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade, with thin slow caustics on the pond floor; after dusk it is ink-teal going to indigo. The hour is read when the look is put on: a new session, or `/look koi-script` again, changes the dress. Vermilion accent. Respects *reduce motion*.
+Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi circle slowly low on the left, beside the sidebar, each on its own depth: a large, bright kohaku (bone white with vermilion patches), a smaller sanke with ink marks as well, and a small ogon in one pale gold, the deepest and closest to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`) and worn by all three in different coats: its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, its frames turning like the pages of a flipbook. In the near koi's wake, rings of dots open slowly; every few minutes a petal comes down in the middle of it all, drifts a little and fades. The layout is the golden ratio throughout: from the eye of the frame's golden spiral a second spiral is drawn, then the whole of it is moved into the strip beside the sidebar that no panel covers, and the koi swim three of its arcs, so circles and koi shrink by φ each time; the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade, with thin slow caustics on the pond floor; after dusk it is ink-teal going to indigo. The hour is read when the look is put on: a new session, or `/look koi` again, changes the dress. Vermilion accent. Respects *reduce motion*.
 
 | Desktop, night | Desktop, day | Phone |
 |---|---|---|
-| ![Koi script at night on desktop](docs/screenshots/koi-script-dark-desktop.png) | ![Koi script by day on desktop](docs/screenshots/koi-script-day-dark-desktop.png) | <img src="docs/screenshots/koi-script-dark-mobile.png" alt="Koi script on a phone" width="260"> |
+| ![Koi at night on desktop](docs/screenshots/koi-dark-desktop.png) | ![Koi by day on desktop](docs/screenshots/koi-day-dark-desktop.png) | <img src="docs/screenshots/koi-dark-mobile.png" alt="Koi on a phone" width="260"> |
 
 ## Make a look
 
@@ -112,7 +112,7 @@ the register of which looks are reworked.
      under 12,000 characters, which `/look preview` draws instead of the live scene.
    - `index.js`: a default export shaped like `Look` in `hooks/looks/types.d.ts`. A look that follows the
      time of day adds a `day` dress (its own `args` and `scene`, and the local `hours` it is worn
-     between), as `koi-script` does; `tools/preview.mjs` shoots it as `<name>-day`.
+     between), as `koi` does; `tools/preview.mjs` shoots it as `<name>-day`.
 2. Add it to `LOOKS` in `hooks/looks/index.js`.
 3. Check it (and see [AGENTS.md](AGENTS.md) for the gitleaks checks before a commit):
    ```bash

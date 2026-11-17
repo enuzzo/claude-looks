@@ -1,8 +1,8 @@
 // Shoots a look's scene at chosen moments, to see it in motion without the app.
 //
 //   node tools/qa/frames.mjs <look> [times in s, comma-separated] [export name] [out dir]
-//   node tools/qa/frames.mjs digital-rain 0,5,10,60
-//   node tools/qa/frames.mjs koi-script 0,30 SCENE_DAY
+//   node tools/qa/frames.mjs rain 0,5,10,60
+//   node tools/qa/frames.mjs koi 0,30 SCENE_DAY
 //
 // Writes <out dir>/<look>-<name>-<t>s.png (1600×1000) plus <look>-<name>-still.png: the scene with every
 // animation removed, which is what the desktop app's still copy shows (and what reduce motion leaves).

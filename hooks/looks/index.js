@@ -1,20 +1,20 @@
 // Every look in the collection. A new look is a folder beside this file,
 // exporting a Look as default, and one line here.
-import synthwaveSunset from './synthwave-sunset/index.js'
-import homeComputer from './home-computer/index.js'
-import digitalRain from './digital-rain/index.js'
-import asciiTide from './ascii-tide/index.js'
+import synthwave from './synthwave/index.js'
+import basic from './basic/index.js'
+import rain from './rain/index.js'
+import tide from './tide/index.js'
 import abyssal from './abyssal/index.js'
-import koiScript from './koi-script/index.js'
+import koi from './koi/index.js'
 
 /** @type {readonly import('./types').Look[]} */
 export const LOOKS = [
-  synthwaveSunset,
-  homeComputer,
-  digitalRain,
-  asciiTide,
+  synthwave,
+  basic,
+  rain,
+  tide,
   abyssal,
-  koiScript,
+  koi,
 ]
 
-export const DEFAULT_LOOK = 'synthwave-sunset'
+export const DEFAULT_LOOK = 'synthwave'

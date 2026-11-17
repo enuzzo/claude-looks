@@ -3,7 +3,7 @@
 // plus a phone. One contact sheet per dress, to look at before a look ships (docs/DIRECTION.md, "Layout").
 //
 //   node tools/qa/layout.mjs <look> [--guides] [--out dir]
-//   node tools/qa/layout.mjs home-computer --guides
+//   node tools/qa/layout.mjs basic --guides
 //
 // Writes <out>/<look>.png (and <look>-day.png for a look with a daylight dress). Default out:
 // $TMPDIR/looks-layout. --guides draws the zones of docs/DIRECTION.md over each window: the open

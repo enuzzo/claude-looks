@@ -5,7 +5,7 @@ const git = { added: '#7fd6a0', removed: '#ff7088', modified: '#f2c46b', merged:
 
 // A koi pond at night: ink-teal water going to indigo, bone-white text, the vermilion of a koi as accent.
 export const { theme, problems } = makeColors({
-  label: 'Koi script',
+  label: 'Koi',
   only: 'dark',
   roles,
   dark: {
@@ -26,7 +26,7 @@ export const { theme, problems } = makeColors({
 
 // The same pond by day: muted jade water, still dark enough to sit behind code.
 export const { theme: dayTheme, problems: dayProblems } = makeColors({
-  label: 'Koi script (day)',
+  label: 'Koi (day)',
   only: 'dark',
   roles,
   dark: {

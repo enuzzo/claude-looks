@@ -1,7 +1,7 @@
 // Checks every look's scenes the way the desktop app will treat them, before a release.
 //
 //   node tools/qa/scenes.mjs                 all looks
-//   node tools/qa/scenes.mjs koi-script      only looks whose folder name contains this
+//   node tools/qa/scenes.mjs koi      only looks whose folder name contains this
 //   SCENE_LIMIT_MS=3 node tools/qa/scenes.mjs
 //
 // For each exported scene (SCENE, SCENE_DAY, …) and poster:

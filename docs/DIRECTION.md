@@ -147,13 +147,13 @@ until they meet this standard.
 | Look | Rework | Subject |
 |---|---|---|
 | `abyssal` | **done** (2026-11-16) | a raymarched ASCII manta gliding low in the open field on the left; jellies far off on the right; a rare turtle |
-| `synthwave-sunset` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the open field on the left, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
-| `ascii-tide` | **done** (2026-11-16) | a moon ray-cast into glyphs high in the open field on the left; a perspective sea of type with its light on the water; rare falling stars |
-| `koi-script` | **done** (2026-11-16) | three raymarched ASCII koi in three coats, sized and placed by the golden ratio, circling low in the open field on the left; rings of dots in the near one's wake; a rare petal; night water, and jade water with caustics by day |
+| `synthwave` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the open field on the left, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
+| `tide` | **done** (2026-11-16) | a moon ray-cast into glyphs high in the open field on the left; a perspective sea of type with its light on the water; rare falling stars |
+| `koi` | **done** (2026-11-16) | three raymarched ASCII koi in three coats, sized and placed by the golden ratio, circling low in the open field on the left; rings of dots in the near one's wake; a rare petal; night water, and jade water with caustics by day |
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
-| `digital-rain` | **done** (2026-11-16) | a slow curtain of glyph rain hanging from the sidebar's edge, three depths; a rare lone column in the empty field |
-| `home-computer` | **done** (2026-11-17, C64 rework) | an 8-bit machine's screen: its log at the top left by the sidebar, a frameless block-mosaic moon (the sun by day) low on the right, just clear of the right panel, dissolving into the blue (the owner's placement) loading from tape in the bottom-left, raster stripes in the light-blue border; a rare sprite ship |
+| `rain` | **done** (2026-11-16) | a slow curtain of glyph rain hanging from the sidebar's edge, three depths; a rare lone column in the empty field |
+| `basic` | **done** (2026-11-17, C64 rework) | an 8-bit machine's screen: its log at the top left by the sidebar, a frameless block-mosaic moon (the sun by day) low on the right, just clear of the right panel, dissolving into the blue (the owner's placement) loading from tape in the bottom-left, raster stripes in the light-blue border; a rare sprite ship |
 | `neon-punk` | withdrawn to `drafts/` (its wall is a generated image) | |
 | `cyberpunk` | withdrawn to `drafts/` | |
 | `aurora` | withdrawn to `drafts/` | |

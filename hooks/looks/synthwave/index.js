@@ -5,13 +5,13 @@ const { SCENE } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
-  id: 'synthwave-sunset',
-  label: 'Synthwave sunset',
+  id: 'synthwave',
+  label: 'Synthwave',
   description: 'A dark dusk set in type: a banded sun of glyphs on the horizon, a field of dots drifting toward you, hot pink accents.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'synthwave-sunset', glass: { blur: 6, tint: '#140a24', opacity: 0.5 } },
+    backdrop: { id: 'synthwave', glass: { blur: 6, tint: '#140a24', opacity: 0.5 } },
   },
   scene: {
     source: SCENE,
