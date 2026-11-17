@@ -135,8 +135,10 @@ function pixelRaw(x, y, variant) {
 }
 
 const FS_P = 17, CW_P = FS_P * 0.602, SY_P = 0.602 // scaled vertically so a quadrant is square
-const K = 0.78 // the picture's scale: it fits the open field beside the sidebar (docs/DIRECTION.md, Layout)
-const PX = 262, PY = 640 // the picture's top-left in the viewBox
+const K = 0.78 // the picture's scale
+// The picture sits low on the right, between the conversation and the right panel (the owner's choice,
+// 2026-11-17): its right edge ~270 units in from the frame's, clear of the panel when it opens.
+const PX = 1028, PY = 700 // the picture's top-left in the viewBox
 const PIX = CW_P / 2 // the side of one pixel, in viewBox units
 const QUAD = [[' ', '▝'], ['▘', '▀']] // top half: [left][right]
 const QUAD_B = [[' ', '▗'], ['▖', '▄']]
@@ -208,7 +210,7 @@ const ship = `<g class="shipOn"><g class="ship" transform="translate(${f(SX0 * P
 
 // ── the log: the screen's type at the top of the open field, the picture well below it (the scene is cropped from the top on wide
 // windows), 40 columns, one line every 18 units
-const FS_T = 13, LH = 16, TX = 300, TY = 160 // at the top of the open field, under the title bar (wide windows crop the top by up to ~130)
+const FS_T = 13, LH = 16, TX = 236, TY = 250 // at the top left, close to the sidebar, clear of the cropped top (wide windows lose up to ~150)
 const LOG = [
   ['    **** HOME BASIC V2 ****', 0],
   [' 64K RAM SYSTEM  38911 BYTES FREE', 0],
@@ -232,16 +234,15 @@ LOG.forEach(([line, on], i) => {
   log += `<text class="tl" style="animation-name:t${i}" y="${i * LH}">${line}</text>`
 })
 // the cursor: where the machine waits for a key; hidden while it is busy
-const CURSORS = [[4, 0, T_LOAD], [13, T_READY, T_RUN], [0, CLEAR, C]]
+// after RUN the cursor waits on the next line, blinking, while the picture holds
+const CURSORS = [[4, 0, T_LOAD], [13, T_READY, T_RUN], [14, T_RUN + 3, CLEAR], [0, CLEAR, C]]
 const cell = FS_T * 0.602
 let cursor = ''
 CURSORS.forEach(([row, on, off], i) => {
   shown(`c${i}`, on, off)
   cursor += `<rect class="cu" style="animation-name:c${i}" y="${f(row * LH - 1)}" width="${f(cell)}" height="${FS_T + 2}" fill="${TYPE}"/>`
 })
-// in the still, the cursor waits on the line after RUN
-kf('never', '0%,100%{visibility:hidden}')
-cursor += `<rect class="cu" style="animation-name:never" y="${f(14 * LH - 1)}" width="${f(cell)}" height="${FS_T + 2}" fill="${TYPE}"/>`
+
 
 // ── the border: the light-blue frame of the screen at the left edge, a solid core that frays into
 // shades. While a picture loads it fills with raster stripes of the palette, rising slowly.
