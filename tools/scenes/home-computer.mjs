@@ -89,7 +89,19 @@ function daySky(x, y) {
   return null
 }
 
+// The picture has no frame: toward its edges its pixels thin out, in the same ordered dither, until
+// only the ground is left, so it dissolves into the screen instead of sitting in a box. The moon (or
+// the sun) is the heart of it and keeps every pixel.
+function fade(x, y) {
+  const r = Math.hypot((x - 40) / 42, (y - 24) / 27)
+  return Math.max(0, Math.min(1, (1 - r) / 0.42))
+}
 function pixel(x, y, variant) {
+  const ink = pixelRaw(x, y, variant)
+  if (ink === null || ink === 'moon') return ink
+  return dith(x, y, fade(x, y)) ? ink : null
+}
+function pixelRaw(x, y, variant) {
   const dm = Math.hypot(x - MX, y - MY), dc = Math.hypot(x - CX, y - CY)
   if (y < HZ && DAY) return daySky(x, y)
   if (y < HZ) {
@@ -123,8 +135,8 @@ function pixel(x, y, variant) {
 }
 
 const FS_P = 17, CW_P = FS_P * 0.602, SY_P = 0.602 // scaled vertically so a quadrant is square
-const K = 0.66 // the picture's scale: it fits the open field beside the sidebar (docs/DIRECTION.md, Layout)
-const PX = 300, PY = 675 // the picture's top-left in the viewBox
+const K = 0.78 // the picture's scale: it fits the open field beside the sidebar (docs/DIRECTION.md, Layout)
+const PX = 262, PY = 640 // the picture's top-left in the viewBox
 const PIX = CW_P / 2 // the side of one pixel, in viewBox units
 const QUAD = [[' ', '▝'], ['▘', '▀']] // top half: [left][right]
 const QUAD_B = [[' ', '▗'], ['▖', '▄']]
@@ -194,9 +206,9 @@ kf('ship', `0%,${pc(SHIP0, C)}%{transform:translateX(${f(SX0 * PIX)}px)}${pc(SHI
 shown('shipOn', SHIP0, SHIP0 + SHIP_T)
 const ship = `<g class="shipOn"><g class="ship" transform="translate(${f(SX0 * PIX)} 0)"><g transform="translate(0 ${f(SY * PIX)}) scale(${f(PIX)})"><path d="${shipPath('#')}" fill="${C64.lgrey}"/><path d="${shipPath('=')}" fill="${C64.grey}"/></g></g></g>`
 
-// ── the log: the screen's type just above the picture (the scene is cropped from the top on wide
+// ── the log: the screen's type at the top of the open field, the picture well below it (the scene is cropped from the top on wide
 // windows), 40 columns, one line every 18 units
-const FS_T = 13, LH = 16, TX = 300, TY = 415
+const FS_T = 13, LH = 16, TX = 300, TY = 160 // at the top of the open field, under the title bar (wide windows crop the top by up to ~130)
 const LOG = [
   ['    **** HOME BASIC V2 ****', 0],
   [' 64K RAM SYSTEM  38911 BYTES FREE', 0],
@@ -261,7 +273,7 @@ const cyc = `${C}s steps(1) infinite ${-OPEN}s`
 const style = `<style>
 svg{--m:${MONO}}
 text{font-family:${FONT};white-space:pre;dominant-baseline:hanging}
-.pic text{font-size:${FS_P}px;fill:var(--c)}.band text{font-size:${FS_B}px}
+.pic{opacity:.78}.pic text{font-size:${FS_P}px;fill:var(--c)}.band text{font-size:${FS_B}px}
 .ln,.tl,.cu{animation-duration:${C}s;animation-timing-function:steps(1);animation-iteration-count:infinite;animation-delay:${-OPEN}s}
 .tl{font-size:${FS_T}px;fill:${TYPE}}
 .blink{animation:blink 1.8s steps(1) infinite}
@@ -288,7 +300,7 @@ ${DEFS}
 <g class="band"><g class="rest">${rest}</g><g class="load"><g class="rise">${stripes}</g></g></g>
 <g transform="translate(${TX} ${TY})">${log}<g class="blink">${cursor}</g></g>
 <g class="pos"><g transform="translate(${PX} ${PY}) scale(${K})"><g class="pic" transform="scale(1 ${SY_P})">${picture}</g>${ship}
-<rect width="${f(PIC_W)}" height="${f(PIC_H)}" fill="url(#scanP)" opacity=".3"/></g></g>
+</g></g>
 </svg>`.replace(/\n\s*\n/g, '\n')
 
 // ── the poster: the screen at rest, the picture whole, no motion

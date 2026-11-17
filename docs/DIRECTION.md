@@ -153,7 +153,7 @@ until they meet this standard.
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
 | `digital-rain` | **done** (2026-11-16) | a slow curtain of glyph rain hanging from the sidebar's edge, three depths; a rare lone column in the empty field |
-| `home-computer` | **done** (2026-11-17, C64 rework) | an 8-bit machine's screen: its log above a block-mosaic moon (the sun by day) loading from tape in the bottom-left, raster stripes in the light-blue border; a rare sprite ship |
+| `home-computer` | **done** (2026-11-17, C64 rework) | an 8-bit machine's screen: its log at the top of the open field, below it a frameless block-mosaic moon (the sun by day) dissolving into the blue loading from tape in the bottom-left, raster stripes in the light-blue border; a rare sprite ship |
 | `neon-punk` | withdrawn to `drafts/` (its wall is a generated image) | |
 | `cyberpunk` | withdrawn to `drafts/` | |
 | `aurora` | withdrawn to `drafts/` | |
