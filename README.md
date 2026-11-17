@@ -47,7 +47,7 @@ A fresh install wears `synthwave-sunset`.
 
 ### `synthwave-sunset`
 
-Dark only. A synthwave dusk kept low and quiet, to work beside for hours, and made only of type. In the bottom-right corner a sun set in a halftone of glyphs sits on the horizon, cut by the bands such suns have, between low ridges of slope glyphs. Below it the floor is a field of dots in perspective, the crossings of a neon grid with the lines left out, drifting toward you one row every few seconds. The sky goes from ink to a dusk violet, with a few glyph stars that change shape now and then. Once in a while a light runs along the horizon or a star falls. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
+Dark only. A synthwave dusk kept low and quiet, to work beside for hours, and made only of type. Low on the left, beside the sidebar, a sun set in a halftone of glyphs sits on the horizon, cut by the bands such suns have, between low ridges of slope glyphs. Below it the floor is a field of dots in perspective, the crossings of a neon grid with the lines left out, drifting toward you one row every few seconds. The sky goes from ink to a dusk violet, with a few glyph stars that change shape now and then. Once in a while a light runs along the horizon or a star falls. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -63,7 +63,7 @@ Dark only, in two dresses chosen by the hour. An 8-bit home computer of the C64 
 
 ### `digital-rain`
 
-Dark only. A quiet curtain of green-phosphor glyphs held to the right edge, thinning toward the middle, on three depths. Every column is faintly there, and now and then two of its glyphs take turns; down it falls a drop of light, a short string of glyphs brightest just behind its pale head, one row at a time at its own slow pace, as a terminal would draw it. Every few minutes a single dim column lights once far out in the empty field, like a thought crossing. Bright green accent; errors stay a muted red, warnings amber. Respects *reduce motion*.
+Dark only. A quiet curtain of green-phosphor glyphs hanging from the sidebar's edge on the left, thinning toward the middle, on three depths. Every column is faintly there, and now and then two of its glyphs take turns; down it falls a drop of light, a short string of glyphs brightest just behind its pale head, one row at a time at its own slow pace, as a terminal would draw it. Every few minutes a single dim column lights once far out in the empty field, like a thought crossing. Bright green accent; errors stay a muted red, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -71,7 +71,7 @@ Dark only. A quiet curtain of green-phosphor glyphs held to the right edge, thin
 
 ### `ascii-tide`
 
-Dark only. A night sea set entirely in type. High in the corner, a moon ray-cast into glyphs, maria and craters and all; below it, rows of `. - ~ =` swell slowly toward you in perspective, and its light shimmers on the water in a road of brighter glyphs. Minutes apart, a star falls into the sea and rings of `o` open where it lands. Mint accent on ink-blue. Respects *reduce motion*.
+Dark only. A night sea set entirely in type. High on the left, beside the sidebar, a moon ray-cast into glyphs, maria and craters and all; below it, rows of `. - ~ =` swell slowly toward you in perspective, and its light shimmers on the water in a road of brighter glyphs. Minutes apart, a star falls into the sea and rings of `o` open where it lands. Mint accent on ink-blue. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -79,7 +79,7 @@ Dark only. A night sea set entirely in type. High in the corner, a moon ray-cast
 
 ### `abyssal`
 
-Dark only. The deep sea, almost black, breathing with two slow glows of teal and violet, plankton drifting down in specks of type. In the corner a manta glides on a lazy orbit, its wings bending as it flies, and two moon jellies pulse at the edge; once every few minutes a sea turtle rises past in the margin. The animals are real 3D solids, raymarched into ASCII when the scene is built (`tools/scenes/ascii3d.mjs`), one frame per step of their swim, and the frames dissolve into one another. Sea-glass accent on deep teal. Respects *reduce motion*.
+Dark only. The deep sea, almost black, breathing with two slow glows of teal and violet, plankton drifting down in specks of type. Low on the left, beside the sidebar, a manta glides on a lazy orbit, its wings bending as it flies; far off on the right two moon jellies pulse, and once every few minutes a sea turtle rises past in the margin. The animals are real 3D solids, raymarched into ASCII when the scene is built (`tools/scenes/ascii3d.mjs`), one frame per step of their swim, and the frames dissolve into one another. Sea-glass accent on deep teal. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -87,7 +87,7 @@ Dark only. The deep sea, almost black, breathing with two slow glows of teal and
 
 ### `koi-script`
 
-Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi circle slowly in the bottom-right corner, each on its own depth: a large, bright kohaku (bone white with vermilion patches), a smaller sanke with ink marks as well, and a small ogon in one pale gold, the deepest and closest to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`) and worn by all three in different coats: its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, its frames turning like the pages of a flipbook. In the near koi's wake, rings of dots open slowly; every few minutes a petal comes down in the middle of it all, drifts a little and fades. The layout is the golden ratio throughout: from the eye of the frame's golden spiral a second spiral winds into the corner, in the strip the conversation leaves open, and the koi swim three of its arcs, so circles and koi shrink by φ each time; the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade, with thin slow caustics on the pond floor; after dusk it is ink-teal going to indigo. The hour is read when the look is put on: a new session, or `/look koi-script` again, changes the dress. Vermilion accent. Respects *reduce motion*.
+Dark only, in two dresses chosen by the hour. A still pond seen from above, set in glyphs. Three koi circle slowly low on the left, beside the sidebar, each on its own depth: a large, bright kohaku (bone white with vermilion patches), a smaller sanke with ink marks as well, and a small ogon in one pale gold, the deepest and closest to the colour of the water. The koi is a real 3D solid, raymarched into ASCII when the scene is built (`tools/scenes/koi.mjs`) and worn by all three in different coats: its spine bends to the circle it swims and carries the body wave measured on real fish, one slow stroke of the tail and then a long glide, its frames turning like the pages of a flipbook. In the near koi's wake, rings of dots open slowly; every few minutes a petal comes down in the middle of it all, drifts a little and fades. The layout is the golden ratio throughout: from the eye of the frame's golden spiral a second spiral is drawn, then the whole of it is moved into the strip beside the sidebar that no panel covers, and the koi swim three of its arcs, so circles and koi shrink by φ each time; the periods are Fibonacci numbers (laps of 144, 89 and 55 s, the petal every 233 s). From 7 in the morning to 7 in the evening the water is muted jade, with thin slow caustics on the pond floor; after dusk it is ink-teal going to indigo. The hour is read when the look is put on: a new session, or `/look koi-script` again, changes the dress. Vermilion accent. Respects *reduce motion*.
 
 | Desktop, night | Desktop, day | Phone |
 |---|---|---|
@@ -128,6 +128,12 @@ the register of which looks are reworked.
    (`npx playwright install chromium`); `tools/release.sh` refuses a scene that fails it:
    ```bash
    node tools/qa/scenes.mjs <name>
+   ```
+   Then look at it as the app will frame it, with the sidebar and the right panel open and closed, at
+   four window sizes and on a phone (where the subject goes is in [docs/DIRECTION.md](docs/DIRECTION.md),
+   under Layout):
+   ```bash
+   node tools/qa/layout.mjs <name> --guides
    ```
    Keep the cost under 2.5 ms on the bench. What makes a frame cheap is in
    [docs/DIRECTION.md](docs/DIRECTION.md).

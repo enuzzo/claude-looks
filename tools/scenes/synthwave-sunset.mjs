@@ -1,6 +1,6 @@
 // Synthwave sunset scene generator. Run: node tools/scenes/synthwave-sunset.mjs
 // The last minutes of a synthwave dusk, kept low and quiet to work beside for hours. Everything is
-// type: a sun set in a halftone of glyphs sits on the horizon in the bottom-right corner, cut by the
+// type: a sun set in a halftone of glyphs sits on the horizon in the open field beside the sidebar, cut by the
 // bands such suns have; a low ridge of slope glyphs runs out on either side of it; below, the floor is
 // a field of dots in perspective, the points where a neon grid's lines would cross, drifting toward
 // you one row every few seconds (a flipbook of phases, switched, never faded). The sky goes from ink
@@ -18,7 +18,7 @@ const f = n => +n.toFixed(1)
 
 const W = 1600, H = 1000
 const HY = 770 // the horizon
-const VX = 1290 // the vanishing point, under the sun
+const VX = 420 // the vanishing point, under the sun: the open field beside the sidebar (docs/DIRECTION.md, Layout)
 const FONT = 'ui-monospace,Menlo,Consolas,monospace'
 const PINK = '#e2409c', HOT = '#f07ac4', SUN_TOP = '#f6d98a', SUN_MID = '#f0915a'
 
@@ -46,8 +46,8 @@ for (let y = SY - SR, row = 0; y < HY - 4; y += SCH, row++) {
 }
 
 // ── the ridge: low slopes of glyphs on both sides of the sun, a dust of dots beneath
-const ridge = [[760, HY], [820, HY - 22], [880, HY - 12], [950, HY - 46], [1010, HY - 20], [1070, HY - 34], [1120, HY - 8],
-  [1460, HY - 10], [1500, HY - 38], [1545, HY - 24], [1600, HY - 64], [1640, HY - 40]]
+const ridge = [[-40, HY - 40], [0, HY - 64], [55, HY - 24], [100, HY - 38], [140, HY - 10], [190, HY - 6],
+  [600, HY - 8], [650, HY - 34], [700, HY - 18], [745, HY - 30], [790, HY - 10], [840, HY]]
 const ridgeAt = x => {
   for (let i = 1; i < ridge.length; i++) {
     const [x1, y1] = ridge[i - 1], [x2, y2] = ridge[i]
@@ -59,14 +59,14 @@ const MCW = 6, MCH = 11
 let ridgeText = ''
 for (let y = HY - 70; y < HY - 2; y += MCH) {
   let line = ''
-  for (let x = 760; x <= W; x += MCW) {
+  for (let x = 0; x <= 840; x += MCW) {
     const [ry, slope] = ridgeAt(x)
     if (Math.abs(x - SX) < SR * 0.9) line += ' ' // the sun stands in front of the far ridge
     else if (y < ry - MCH / 2) line += ' '
     else if (y < ry + MCH / 2) line += Math.abs(slope) < 0.3 ? '_' : slope < 0 ? '/' : '\\'
     else line += R() < 0.4 * (1 - (y - ry) / (HY - ry + 1)) ? (R() < 0.3 ? ':' : '.') : ' '
   }
-  ridgeText += `<text x="760" y="${f(y)}">${line.trimEnd()}</text>`
+  ridgeText += `<text x="0" y="${f(y)}">${line.trimEnd()}</text>`
 }
 
 // ── the floor: the crossings of a grid in perspective, as dots. Row k of depth sits at
@@ -104,7 +104,7 @@ const SHAPES = [['+', '·'], ['*', '+'], ['·', '+'], ['x', '·'], ['+', '*']]
 let stars = ''
 for (let i = 0; i < 40; i++) {
   const x = f(R() * W), y = f(20 + R() * (HY - 160))
-  if (x < 1050 && R() < 0.55) continue // fewer over the conversation
+  if (x > 600 && R() < 0.55) continue // fewer over the conversation
   const [a, b] = SHAPES[Math.floor(R() * SHAPES.length)]
   const size = f(9 + R() * 7), dur = f(17 + R() * 40), delay = f(-R() * 60), dim = f(0.25 + R() * 0.45)
   stars += `<g opacity="${dim}" font-size="${size}"><text x="${x}" y="${y}" class="sa" style="animation-duration:${dur}s;animation-delay:${delay}s">${a}</text><text x="${x}" y="${y}" class="sb" style="animation-duration:${dur}s;animation-delay:${delay}s">${b}</text></g>`
@@ -132,7 +132,7 @@ text{font-family:${FONT};white-space:pre;dominant-baseline:central}
 .run text{font-size:10px;fill:${HOT}}
 .fallOn{visibility:hidden;animation:fallOn ${FALL}s steps(1) infinite 71s}.fall{animation:fall ${FALL}s steps(24) infinite 71s}
 .fall text{font-size:11px;fill:#f4eaff}
-${css}@media (max-aspect-ratio:3/4){.pos{transform:translateX(-120px)}}
+${css}@media (max-aspect-ratio:3/4){.pos{transform:translateX(-160px)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 `
 
@@ -145,13 +145,13 @@ const DEFS = `<defs>
 <linearGradient id="foot" x1="0" y1="${HY}" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0c051c" stop-opacity="0"/><stop offset=".6" stop-color="#0c051c" stop-opacity=".25"/><stop offset="1" stop-color="#0c051c" stop-opacity=".75"/></linearGradient>
 </defs>`
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice">
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice">
 <style>${style}</style>
 ${DEFS}
 <rect width="${W}" height="${HY}" fill="url(#sky)"/>
 <rect y="${HY}" width="${W}" height="${H - HY}" fill="url(#ground)"/>
 <g class="stars">${stars}</g>
-<g class="fallOn"><g class="fall"><text x="1180" y="150">*</text><text x="1192" y="144" opacity=".5">.</text><text x="1204" y="138" opacity=".25">.</text></g></g>
+<g class="fallOn"><g class="fall"><text x="560" y="330">*</text><text x="572" y="324" opacity=".5">.</text><text x="584" y="318" opacity=".25">.</text></g></g>
 <rect width="${W}" height="${H}" fill="url(#halo)"/>
 <g class="pos">
 <g class="ridge">${ridgeText}</g>
@@ -164,7 +164,7 @@ ${DEFS}
 </svg>`.replace(/\n\s*\n/g, '\n')
 
 // the poster: the scene at rest, without stars or events
-const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice" width="320" height="180">
+const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>text{font-family:${FONT};white-space:pre;dominant-baseline:central}.sun text{font-size:10px;fill:url(#sunfill)}.ridge text{font-size:10px;fill:${HOT}}</style>
 ${DEFS.replace(/<linearGradient id="foot".*?<\/linearGradient>/, '')}
 <rect width="${W}" height="${HY}" fill="url(#sky)"/><rect y="${HY}" width="${W}" height="${H - HY}" fill="url(#ground)"/>

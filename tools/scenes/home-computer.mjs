@@ -123,8 +123,8 @@ function pixel(x, y, variant) {
 }
 
 const FS_P = 17, CW_P = FS_P * 0.602, SY_P = 0.602 // scaled vertically so a quadrant is square
-const K = 0.95 // the picture's scale: small enough to sit within a sidebar's width on a desktop
-const PX = 112, PY = 592 // the picture's top-left in the viewBox
+const K = 0.66 // the picture's scale: it fits the open field beside the sidebar (docs/DIRECTION.md, Layout)
+const PX = 300, PY = 675 // the picture's top-left in the viewBox
 const PIX = CW_P / 2 // the side of one pixel, in viewBox units
 const QUAD = [[' ', '▝'], ['▘', '▀']] // top half: [left][right]
 const QUAD_B = [[' ', '▗'], ['▖', '▄']]
@@ -196,7 +196,7 @@ const ship = `<g class="shipOn"><g class="ship" transform="translate(${f(SX0 * P
 
 // ── the log: the screen's type just above the picture (the scene is cropped from the top on wide
 // windows), 40 columns, one line every 18 units
-const FS_T = 15, LH = 18, TX = 112, TY = 318
+const FS_T = 13, LH = 16, TX = 300, TY = 415
 const LOG = [
   ['    **** HOME BASIC V2 ****', 0],
   [' 64K RAM SYSTEM  38911 BYTES FREE', 0],

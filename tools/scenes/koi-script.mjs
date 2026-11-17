@@ -51,6 +51,9 @@ const EYE = (() => {
   return [x, y]
 })()
 
+// the whole spiral moves left by KX, from the corner into the open field: the near koi's circle centred at ~400
+const KX = -1070
+
 const UNIT = RADII[0] / PHI // viewBox units per body unit: each koi's circle has a radius of φ body units
 const DX = 0.0472 // one glyph cell, in body units: the detail of the sprite
 const FS = (DX * UNIT) / 0.602 // the near koi's font size; the others are the same sprite at 1/φ and 1/φ²
@@ -275,12 +278,13 @@ ${grad('glowA', L.glowA)}${grad('glowB', L.glowB)}
 <radialGradient id="halo"><stop offset="0" stop-color="${L.halo[0]}" stop-opacity="${L.halo[1]}"/><stop offset="1" stop-color="${L.halo[0]}" stop-opacity="0"/></radialGradient>
 <linearGradient id="kw" gradientUnits="userSpaceOnUse" x1="${f(33 * FS)}" y1="0" x2="0" y2="0"><stop offset="0" stop-color="${L.k1.white[0]}"/><stop offset=".6" stop-color="${L.k1.white[1]}"/><stop offset="1" stop-color="${L.k1.white[2]}"/></linearGradient>`
   const ground = `<rect width="${W}" height="${H}" fill="url(#water)"/>`
-  const glows = anim => `<g${anim ? ' class="glowB"' : ''}><circle cx="330" cy="240" r="640" fill="url(#glowB)"/></g><g${anim ? ' class="glowA"' : ''}><circle cx="${f(EYE[0])}" cy="${f(EYE[1])}" r="480" fill="url(#glowA)"/></g>`
+  const glows = anim => `<g${anim ? ' class="glowB"' : ''}><circle cx="1300" cy="240" r="640" fill="url(#glowB)"/></g><g${anim ? ' class="glowA"' : ''}><circle cx="${f(EYE[0] + KX)}" cy="${f(EYE[1])}" r="480" fill="url(#glowA)"/></g>`
   const fish = anim => [2, 1, 0].map(i => koiAt(KOI[i], i, anim)).join('\n')
 
-  // Anchored bottom-right: on a tall phone the left is cropped, on a wide window the top; the corner
-  // with the koi stays in view and the middle, where the words are, stays empty.
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice">
+  // Anchored bottom-left: the spiral is laid out in the frame's bottom-right corner, then the whole of it
+  // (koi, rings, petal, caustics) is moved by KX into the open field beside the sidebar (docs/DIRECTION.md,
+  // Layout), where no panel of the app covers it.
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice">
 ${style}
 <defs>
 ${shared}
@@ -290,15 +294,17 @@ ${SPECKS}${L.caustics ? CAUSTICS : ''}${BOOK.frames.join('')}${PETAL}${RINGS}
 ${ground}
 ${glows(true)}
 <g class="specks"><rect y="-420" width="${W + 420}" height="${H + 420}" fill="url(#specks)"/></g>
+<g transform="translate(${KX} 0)">
 ${L.caustics ? '<g class="cA"><use href="#caustics"/></g>' : ''}
 ${fish(true)}
 ${ripples}
 <g transform="translate(${f(EYE[0])} ${f(EYE[1])})">${petalRings}<g class="petal"><use href="#petal"/></g></g>
+</g>
 </svg>`.replace(/\n\s*\n/g, '\n')
 
-  const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice" width="320" height="180">
+  const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>${base}</style>
-<defs>${shared}${KOI.map(k => BOOK.frames[k.hold]).join('')}</defs>${ground}${glows(false)}${fish(false)}
+<defs>${shared}${KOI.map(k => BOOK.frames[k.hold]).join('')}</defs>${ground}${glows(false)}<g transform="translate(${KX} 0)">${fish(false)}</g>
 </svg>`.replace(/\n/g, '')
   return { svg, poster }
 }

@@ -16,6 +16,6 @@ export default {
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'A dark violet dusk made of text characters: in the bottom-right corner a banded sun of glyphs sits on the horizon between low glyph ridges, a field of pink dots in perspective drifts slowly toward the viewer below it, and a few glyph stars hang in the sky',
+    alt: 'A dark violet dusk made of text characters: low on the left a banded sun of glyphs sits on the horizon between low glyph ridges, a field of pink dots in perspective drifts slowly toward the viewer below it, and a few glyph stars hang in the sky',
   },
 }

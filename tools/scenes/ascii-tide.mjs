@@ -1,5 +1,5 @@
 // ascii-tide scene generator. Run: node tools/scenes/ascii-tide.mjs
-// A night sea set in type. The subject is the moon, high in the right corner: a real sphere, ray-cast
+// A night sea set in type. The subject is the moon, high in the open field beside the sidebar: a real sphere, ray-cast
 // here at build time with lunar seas and craters on it, and turned into ASCII (dense glyphs where it is
 // lit, thinning to nothing at the terminator). Under it a sea of glyphs in perspective, rows smaller
 // toward the horizon, each row turning in the slow orbit a swell gives the water (24 s), the crest
@@ -28,7 +28,7 @@ const ADV = 0.602 // monospace advance, in ems
 const W = 1600
 const H = 900
 const HZ = 560 // the horizon
-const MX = 1385 // the moon, and the road under it
+const MX = 375 // the moon, and the road under it: the open field beside the sidebar (docs/DIRECTION.md, Layout)
 const MY = 258
 const MR = 106
 
@@ -134,7 +134,7 @@ const moonPoster = moonSvgAt(13)
 
 R = rng(77101)
 // ── the sea: rows from the horizon down, each bigger than the one behind it
-const XL = 430, XR = 1660 // rows run past the right edge so their sway never shows an end
+const XL = -60, XR = 1170 // rows run past the left edge so their sway never shows an end
 const rows = []
 for (let y = HZ + 3; y < 905;) {
   const d = (y - HZ) / (H - HZ) // 0 at the horizon, 1 at the foot
@@ -182,7 +182,7 @@ rows.forEach(({ y, d, fs }, k) => {
   const a = f(fs * 0.55), b = f(-fs * 0.22)
   const op = f(0.34 + 0.66 * Math.min(1, d * 2.2))
   sea += `<g style="opacity:${op};font-size:${f(fs)}px"><g class="sw" style="--a:${a}px;--b:${b}px;animation-delay:${f(delay)}s"><text class="sea" x="${XL}" y="${f(y)}">${esc(base.replace(/\s+$/, ''))}</text><g class="road">${road}</g></g></g>\n`
-  if (k % 3 === 0) posterRows.push(`<g style="opacity:${op};font-size:${f(fs)}px"><text class="sea" x="${f(XL + Math.floor((1000 - XL) / cw) * cw)}" y="${f(y)}">${esc(base.slice(Math.floor((1000 - XL) / cw)).replace(/\s+$/, ''))}</text><text class="road" x="${f(roadX)}" y="${f(y)}">${esc(takes[0])}</text></g>`)
+  if (k % 3 === 0) posterRows.push(`<g style="opacity:${op};font-size:${f(fs)}px"><text class="sea" x="${XL}" y="${f(y)}">${esc(base.slice(0, Math.floor((900 - XL) / cw)).replace(/\s+$/, ''))}</text><text class="road" x="${f(roadX)}" y="${f(y)}">${esc(takes[0])}</text></g>`)
 })
 
 R = rng(31337)
@@ -192,7 +192,7 @@ let posterStars = ''
 for (let i = 0, made = 0; made < 26 && i < 400; i++) {
   const x = 60 + R() * 1520, y = 30 + R() * (HZ - 90)
   const g = R()
-  if (x > 560 && x < 1120) continue
+  if (x > 640 && x < 1280) continue
   if (Math.hypot(x - MX, y - MY) < MR * 2.1) continue
   made++
   const near = g > 0.85
@@ -231,9 +231,9 @@ function fallingStar(name, { x0, y0, x1, y1, cycle, first, fall, glyphs, size, r
   }
   return s
 }
-// into the sea, left of the road; and far off on the left, never landing. 307 s and 449 s: both prime.
-const STAR_A = fallingStar('sa', { x0: 1150, y0: 70, x1: 1238, y1: 640, cycle: 307, first: 40, fall: 5.5, glyphs: 44, size: 11, rings: true })
-const STAR_B = fallingStar('sb', { x0: 380, y0: 70, x1: 500, y1: 230, cycle: 449, first: 190, fall: 3.6, glyphs: 18, size: 8, rings: false })
+// into the sea, right of the road; and far off on the right, never landing. 307 s and 449 s: both prime.
+const STAR_A = fallingStar('sa', { x0: 600, y0: 70, x1: 560, y1: 640, cycle: 307, first: 40, fall: 5.5, glyphs: 44, size: 11, rings: true })
+const STAR_B = fallingStar('sb', { x0: 1320, y0: 70, x1: 1440, y1: 230, cycle: 449, first: 190, fall: 3.6, glyphs: 18, size: 8, rings: false })
 
 const DEFS = `<defs>
 <linearGradient id="sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${H}"><stop offset="0" stop-color="#05071a"/><stop offset=".5" stop-color="#080c21"/><stop offset="${f(HZ / H - 0.004)}" stop-color="#0b1129"/><stop offset="${f(HZ / H + 0.006)}" stop-color="#070a1b"/><stop offset="1" stop-color="#05070f"/></linearGradient>
@@ -260,7 +260,7 @@ ${css}@keyframes moon{0%,100%{opacity:.93}50%{opacity:1}}
 
 // Anchored right, centred vertically: on a phone the right quarter stays (the moon and its road);
 // on a wide window a band goes at the top and at the foot, where nothing lives.
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMid slice">
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMid slice">
 ${style}
 ${DEFS}
 <rect x="-1200" y="-200" width="${W + 1400}" height="${H + 400}" fill="url(#sky)"/>
@@ -276,7 +276,7 @@ ${STAR_A}
 </svg>`.replace(/\n\s*\n/g, '\n')
 
 // the poster: sky, stars, the moon, every other row of the sea with one take of the road; no events
-const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMid slice" width="320" height="180">
+const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMid slice" width="320" height="180">
 <style>text{font-family:ui-monospace,Menlo,monospace;white-space:pre;dominant-baseline:hanging}.m0{fill:#2b3560}.m1{fill:#56669c}.m2{fill:#8e9dcb}.m3{fill:#c3cdeb}.m4{fill:#e4eaf9}.m5{fill:#f7f9ff}.sea{fill:url(#seaG)}.road{fill:url(#roadG)}.st{fill:#b7c3ea;font-size:12px;opacity:.6}</style>
 ${DEFS}
 <rect width="${W}" height="${H}" fill="url(#sky)"/><g class="st">${posterStars}</g><circle cx="${MX}" cy="${MY}" r="300" fill="url(#halo)"/>${moonPoster}

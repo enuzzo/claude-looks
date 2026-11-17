@@ -62,8 +62,8 @@ FARX.forEach((x, i) => {
 })
 // the thoughts: one column far out in the empty field, at two places on two long cycles
 const THOUGHTS = [
-  { x: 372, d: 'mid', o: 0.2, p: 293, enter: 41, L: 420 },
-  { x: 214, d: 'far', o: 0.16, p: 547, enter: 197, L: 460 },
+  { x: 750, d: 'mid', o: 0.2, p: 293, enter: 41, L: 420 },
+  { x: 500, d: 'far', o: 0.16, p: 547, enter: 197, L: 460 },
 ]
 
 // the waiting glyphs: every column is faintly there even when no drop passes
@@ -121,8 +121,12 @@ function residue(c) {
   return `<g fill="${fill}" opacity="${RESIDUE[c.d]}">${text(still)}${text(a, ` class="sw" style="animation-duration:${c.xf}s;animation-delay:${d}s"`)}${text(b, ` class="sw sb" style="animation-duration:${c.xf}s;animation-delay:${d}s"`)}</g>`
 }
 
+// The curtain was laid out against the right edge; it now hangs from the sidebar's edge on the left,
+// mirrored: x' = W - x + EDGE (docs/DIRECTION.md, Layout). The glyphs stay mirrored, as such rain is.
+const EDGE = 250
+const at = x => W - x + EDGE
 function column(c, i, thought = false) {
-  return `<g transform="translate(${c.x} 0) scale(-1 1)" opacity="${c.o}">${thought ? '' : residue(c)}${drop(c, i, thought)}</g>`
+  return `<g transform="translate(${at(c.x)} 0) scale(-1 1)" opacity="${c.o}">${thought ? '' : residue(c)}${drop(c, i, thought)}</g>`
 }
 
 // draw far first, near last
@@ -150,11 +154,11 @@ ${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 // Anchored to the right edge, centred in height: on a phone only the band shows, on a wide window the
 // top and foot are cropped; the middle, where the words are, stays dark. The band fades out at its top
 // and foot under two still veils of the ground colour (a mask over moving type costs far more).
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMid slice">
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice">
 ${style}
 <defs>${SHARED}</defs>
 <rect width="${W}" height="${H}" fill="${GROUND}"/>
-<ellipse class="haze" cx="1560" cy="470" rx="340" ry="540" fill="url(#haze)"/>
+<ellipse class="haze" cx="${at(1560)}" cy="470" rx="340" ry="540" fill="url(#haze)"/>
 ${rain}<g style="font-size:13px">${thoughts}</g>
 <rect width="${W}" height="${f(H * 0.13)}" fill="url(#top)"/>
 <rect y="${f(H * 0.7)}" width="${W}" height="${f(H * 0.3)}" fill="url(#foot)"/>
@@ -172,14 +176,14 @@ function posterCol(c, i) {
     if (a < 0.06) continue
     t += `<text y="${f(y)}" fill="${k < 0.06 ? head : fill}" fill-opacity="${f(a)}">${glyph()}</text>`
   }
-  return `<g transform="translate(${c.x} 0) scale(-1 1)" opacity="${c.o}" style="font-size:${fs}px">${t}</g>`
+  return `<g transform="translate(${at(c.x)} 0) scale(-1 1)" opacity="${c.o}" style="font-size:${fs}px">${t}</g>`
 }
 const posterRain = COLS.filter(c => c.d === 'mid').map(posterCol).join('') + COLS.filter(c => c.d === 'near').map(posterCol).join('')
-const poster = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMid slice" width="320" height="180">
+const poster = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>text{font-family:ui-monospace,Menlo,"Hiragino Sans",monospace;text-anchor:middle;dominant-baseline:central}</style>
 <defs><linearGradient id="ground" x1="0" y1="0" x2="1" y2=".3"><stop offset="0" stop-color="${GROUND}"/><stop offset="1" stop-color="#061209"/></linearGradient>
 <radialGradient id="haze"><stop offset="0" stop-color="#0f4a24" stop-opacity=".6"/><stop offset="1" stop-color="#0b3519" stop-opacity="0"/></radialGradient></defs>
-<rect width="${W}" height="${H}" fill="url(#ground)"/><ellipse cx="1560" cy="470" rx="340" ry="540" fill="url(#haze)"/>
+<rect width="${W}" height="${H}" fill="url(#ground)"/><ellipse cx="${at(1560)}" cy="470" rx="340" ry="540" fill="url(#haze)"/>
 ${posterRain}
 </svg>`.replace(/\n/g, '')
 

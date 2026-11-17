@@ -35,4 +35,7 @@ If either reports a finding, stop: do not commit or push, and tell the owner wha
   cannot stand in for `$.theme`, so the theme tests need a current one.
 - `hooks/make-colors.js` and `.d.ts` are copies from Claude Code's plugin-authoring skill: never edit them by hand,
   only copy them again.
-- How to add a look is in the README, under "Make a look".
+- How to add a look is in the README, under "Make a look". Where a look's subject goes and what its
+  palette must set are in `docs/DIRECTION.md` (Layout, Colours). Every change to a scene, palette or
+  glass is looked at, not only measured: `node tools/qa/layout.mjs <look> --guides`, every sheet, before
+  a commit, and the owner sees the sheets of a new or reworked look before it ships.

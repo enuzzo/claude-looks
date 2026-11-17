@@ -120,7 +120,7 @@ ${defs.join('')}
 // a rare visitor: the turtle rises along the right margin once in a long cycle, small and far
 kf('visit', `0%{transform:translate(-180px,260px)}${f(30)}%{transform:translate(120px,-760px)}${f(30.01)}%,100%{transform:translate(-180px,260px)}`)
 kf('visitA', '0%{opacity:0}4%{opacity:1}26%{opacity:1}30%,100%{opacity:0}')
-kf('orbitX', '0%,100%{transform:translateX(0)}50%{transform:translateX(-70px)}')
+kf('orbitX', '0%,100%{transform:translateX(0)}50%{transform:translateX(60px)}')
 kf('orbitY', '0%,100%{transform:translateY(0)}50%{transform:translateY(-46px)}')
 kf('bank', '0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg)}')
 kf('breathe', '0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--x),var(--y)) scale(1.15)}')
@@ -140,31 +140,31 @@ pattern text{fill:#7fd6cc}
 ${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}.visit{opacity:0}}
 </style>`
 
-// Anchored bottom-right: on a tall phone the left is cropped, on a wide window the top, and the corner
-// with the manta stays in view; the middle, where the words are, stays empty.
-const svg = inlineUses(`<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice">
+// Anchored bottom-left, the manta in the open field beside the sidebar (docs/DIRECTION.md, Layout); the
+// jellies and the rare turtle keep to the right, companions that may vanish behind the right panel.
+const svg = inlineUses(`<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice">
 ${style}
 ${DEFS}
 <rect width="${W}" height="${H}" fill="url(#sea)"/>
-<g class="glowB"><circle cx="300" cy="260" r="620" fill="url(#violetGlow)"/></g>
-<g class="glowA"><circle cx="1380" cy="820" r="560" fill="url(#tealGlow)"/></g>
+<g class="glowB"><circle cx="1300" cy="260" r="620" fill="url(#violetGlow)"/></g>
+<g class="glowA"><circle cx="430" cy="820" r="560" fill="url(#tealGlow)"/></g>
 <g class="plank"><rect y="-480" width="${W}" height="${H + 480}" fill="url(#plankton)"/></g>
-<g class="jelly"><g transform="translate(150 420) scale(.8)"><g class="jdrift"><circle r="120" fill="url(#jglow)"/><use href="#jellyA"/></g></g>
-<g transform="translate(270 640) scale(.5)"><g class="jdrift" style="animation-delay:-40s"><circle r="120" fill="url(#jglow)"/><use href="#jellyB"/></g></g></g>
+<g class="jelly"><g transform="translate(1250 420) scale(.8)"><g class="jdrift"><circle r="120" fill="url(#jglow)"/><use href="#jellyA"/></g></g>
+<g transform="translate(1390 640) scale(.5)"><g class="jdrift" style="animation-delay:-40s"><circle r="120" fill="url(#jglow)"/><use href="#jellyB"/></g></g></g>
 <g class="visitor"><g transform="translate(1450 900)"><g class="visit"><g transform="rotate(-74) scale(.62)">${TURTLE}</g></g></g></g>
-<g class="manta" transform="translate(1330 790)"><g class="oX"><g class="oY"><g class="bank"><g transform="scale(1.25)">${MANTA}</g></g></g></g></g>
+<g class="manta" transform="translate(420 790)"><g class="oX"><g class="oY"><g class="bank"><g transform="scale(1.25)">${MANTA}</g></g></g></g></g>
 </svg>`.replace(/\n\s*\n/g, '\n'))
 
 // the poster: the same composition, still, with only the manta and the near jelly
-const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice" width="320" height="180">
+const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>text{font-family:ui-monospace,Menlo,monospace;font-size:${FS}px;white-space:pre;dominant-baseline:hanging}</style>
 <defs><linearGradient id="sea" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="#061620"/><stop offset="1" stop-color="#040b13"/></linearGradient>
 <radialGradient id="tealGlow"><stop offset="0" stop-color="#1e8a86" stop-opacity=".42"/><stop offset="1" stop-color="#145d66" stop-opacity="0"/></radialGradient>
 <radialGradient id="violetGlow"><stop offset="0" stop-color="#4a3aa0" stop-opacity=".3"/><stop offset="1" stop-color="#2e2670" stop-opacity="0"/></radialGradient>
 ${stills.manta}${stills.jellyA}</defs>
-<rect width="${W}" height="${H}" fill="url(#sea)"/><circle cx="300" cy="260" r="620" fill="url(#violetGlow)"/><circle cx="1380" cy="820" r="560" fill="url(#tealGlow)"/>
-<g opacity=".5" transform="translate(150 420) scale(.8)"><use href="#jellyA"/></g>
-<g opacity=".95" transform="translate(1330 790) scale(1.25)"><use href="#manta"/></g>
+<rect width="${W}" height="${H}" fill="url(#sea)"/><circle cx="1300" cy="260" r="620" fill="url(#violetGlow)"/><circle cx="430" cy="820" r="560" fill="url(#tealGlow)"/>
+<g opacity=".5" transform="translate(1250 420) scale(.8)"><use href="#jellyA"/></g>
+<g opacity=".95" transform="translate(420 790) scale(1.25)"><use href="#manta"/></g>
 </svg>`.replace(/\n/g, '')
 
 // the app draws nothing a <use> points at: every scene is written out in full

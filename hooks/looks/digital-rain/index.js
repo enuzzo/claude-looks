@@ -7,7 +7,7 @@ const { SCENE } = SCENE_MODULE
 export default {
   id: 'digital-rain',
   label: 'Digital rain',
-  description: 'A slow curtain of green glyph rain at the right edge of a dark screen, bright green accents.',
+  description: 'A slow curtain of green glyph rain hanging by the sidebar on the left of a dark screen, bright green accents.',
   problems,
   args: {
     colors: theme,
@@ -16,6 +16,6 @@ export default {
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'Slow drops of light falling down columns of green katakana along the right edge of a dark screen',
+    alt: 'Slow drops of light falling down columns of green katakana along the left of a dark screen, beside the sidebar',
   },
 }
