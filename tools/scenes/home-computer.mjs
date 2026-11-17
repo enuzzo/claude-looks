@@ -1,11 +1,15 @@
 // home-computer scene generator. Run: node tools/scenes/home-computer.mjs
-// The memory of an 8-bit home computer loading from tape, late at night. Down the left edge runs a
-// narrow band of raster stripes made of block glyphs, the colour of the tape's sound: a calm pilot tone
-// most of the time, data while a picture loads. In the bottom-left corner a small picture made of
-// quadrant blocks (a crescent moon over a still sea) loads line by line, in the interleaved order such
-// machines drew their screens, first in one dim colour and then flooded with its own colours row by row.
-// It holds for minutes, dissolves, the pilot tone swells, and it loads again, on a cycle of 613 s.
-// A block cursor breathes beside it whenever the machine is idle.
+// An 8-bit home computer of the C64 kind, left on late at night, in its own sixteen colours dimmed for
+// the dark. The screen's light-blue border runs down the left edge, frayed into shade glyphs. At the top
+// left, in its uppercase type, the machine's log of one evening: the start-up banner, READY., a LOAD
+// typed in, PRESS PLAY ON TAPE, SEARCHING, FOUND MOONRISE, LOADING. While it loads, the border fills
+// with slow raster stripes of the palette, and in the bottom-left corner a small picture made of
+// quadrant blocks (a crescent moon over a still sea) arrives line by line in the interleaved order such
+// machines drew their screens, first in one colour and then coloured in row by row. RUN: it holds, the
+// moon's road shifts on the water, and once in a while a small sprite ship sails across. Before the
+// cycle of 613 s closes the picture dissolves, the screen clears to a lone cursor, and the machine
+// starts again. Everything switches (visibility, steps()), nothing fades: cheap to draw, and how the
+// machine itself would show it.
 import { writeFileSync } from 'node:fs'
 import { inlineUses } from './inline-uses.mjs'
 import { join } from 'node:path'
@@ -13,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
-let seed = 20261116
+let seed = 20261117
 const R = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)
 const f = n => +n.toFixed(2)
 const pc = (s, C) => f((s / C) * 100) // seconds into a cycle, as a keyframe percentage
@@ -21,23 +25,41 @@ const W = 1600
 const H = 1000
 const FONT = 'Menlo,ui-monospace,"DejaVu Sans Mono",Consolas,monospace' // Menlo's blocks fill the cell exactly
 
-// ── the colours: a night ground, a restrained 8-bit set dimmed to fit it
-const GROUND = ['#0d0a26', '#100c2e', '#120d34']
-const PILOT = ['#4f45a6', '#356f8f'] // violet and a dusty cyan
-const DATA = ['#6f8bd6', '#9a7f45'] // light blue and ochre
-const MONO = '#5f58a4' // the one colour a picture loads in, before its attributes
-const INK = { star: '#b9b2ee', halo: '#4d46a0', moon: '#efe5bd', ghost: '#3a3486', horizon: '#8fb4ff', refl: '#dccb8e', wave: '#39408e' }
+// ── the colours: the machine's sixteen (as measured from the hardware), the screen blue taken down
+// for night work. The ground is darkest away from the left edge, where the conversation sits.
+const C64 = {
+  black: '#000000', white: '#ffffff', red: '#813338', cyan: '#75cec8', purple: '#8e3c97', green: '#56ac4d',
+  blue: '#2e2c9b', yellow: '#edf171', orange: '#8e5029', brown: '#553800', lred: '#c46c71', dgrey: '#4a4a4a',
+  grey: '#7b7b7b', lgreen: '#a9ff9f', lblue: '#706deb', lgrey: '#b2b2b2',
+}
+const GROUND = ['#201d6e', '#18165a', '#141249']
+const BORDER = '#5a57c8' // the light-blue border, a step down
+const TYPE = '#8b88f0' // the screen's light-blue type
+const MONO = '#4f4cb8' // the one colour a picture loads in, before its colours
+const INK = { star: C64.lgrey, halo: '#3d3aa8', moon: '#e3e68c', ghost: '#34319a', horizon: C64.lblue, refl: '#c8cb66', wave: '#3b6f86' }
 
 let css = ''
 const kf = (name, body) => { css += `@keyframes ${name}{${body}}\n` }
+// shown from `on` to `off` (seconds into the cycle), hidden the rest; with steps(1) a switch, never a fade
+const shown = (name, on, off) => kf(name, on <= 0
+  ? `0%{visibility:visible}${pc(off, C)}%,100%{visibility:hidden}`
+  : `0%{visibility:hidden}${pc(on, C)}%{visibility:visible}${pc(off, C)}%,100%{visibility:hidden}`)
 
-// ── the loading cycle, in seconds; the scene opens at OPEN, with the picture whole and holding
+// ── the evening, in seconds of a cycle of C; the scene opens at OPEN, with the picture whole and holding
 const C = 613
-const LOAD0 = 4, STEP = 3.1, FADE_IN = 4.5 // one pixel line every STEP s
 const OPEN = 400
+const T_LOAD = 3, T_PLAY = 4, T_OK = 8, T_SEARCH = 9, T_FOUND = 15, T_LOADING = 17
+const LOAD0 = 19, STEP = 3.1 // one pixel line every STEP s
+const PH = 46
+const LOADED = LOAD0 + (PH - 1) * STEP + 2 // ~160 s
+const T_READY = LOADED + 1, T_RUN = LOADED + 4
+const ATTR0 = T_RUN + 2, ATTR_STEP = 1.4
+const GONE0 = 540, GONE_SPREAD = 30
+const CLEAR = GONE0 + GONE_SPREAD + 4 // the screen clears; a lone cursor until the cycle starts again
+const SHIP0 = 300, SHIP_T = 150 // the sprite ship's crossing
 
 // ── the picture: 76 × 46 square pixels, drawn in quadrant blocks
-const PW = 76, PH = 46
+const PW = 76
 const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]].map(r => r.map(v => (v + 0.5) / 16))
 const dith = (x, y, d) => d > BAYER[y & 3][x & 3]
 const hash = (x, y, s) => { let h = (x * 374761393 + y * 668265263 + s * 2147483647) >>> 0; h = ((h ^ (h >>> 13)) * 1274126177) >>> 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296 }
@@ -59,11 +81,10 @@ function pixel(x, y, variant) {
   if (y === HZ) return dith(x, y, 1.7 - ex * 1.75) ? 'horizon' : null
   const k = y - HZ // depth below the horizon
   // the moon's road on the water: broken runs of light that narrow and thin with depth, in two
-  // variants that dissolve into one another so the water seems to move
+  // variants that take turns so the water seems to move
   const w = 8.5 - k * 0.12, RC = 47 // under the lit edge of the crescent
   const rx = Math.abs(x - RC)
   if (k % 2 === 0 && rx <= w + 1) {
-    // two or three runs of light per line, set symmetrically about the road's centre and jittered
     for (let j = 0; j < 3; j++) {
       const off = (j - 1) * w * 0.55 + (hash(j, y, 5 + variant) - 0.5) * 1.6
       const half = (1.1 + hash(j, y, 9 + variant) * 2.6) * (1 - k / 26) * (j === 1 ? 1.5 : 0.75)
@@ -81,14 +102,14 @@ function pixel(x, y, variant) {
 }
 
 const FS_P = 17, CW_P = FS_P * 0.602, SY_P = 0.602 // scaled vertically so a quadrant is square
-const K = 0.74 // the picture's scale: small enough to sit within a sidebar's width on a desktop
-const PX = 32, PY = 640 // the picture's top-left in the viewBox
+const K = 0.95 // the picture's scale: small enough to sit within a sidebar's width on a desktop
+const PX = 112, PY = 592 // the picture's top-left in the viewBox
 const PIX = CW_P / 2 // the side of one pixel, in viewBox units
 const QUAD = [[' ', '▝'], ['▘', '▀']] // top half: [left][right]
 const QUAD_B = [[' ', '▗'], ['▖', '▄']]
 
-// one pixel line → its texts, one per ink; `cls` picks which inks
-function lineTexts(y, inks, variant, extraCls = '') {
+// one pixel line → its texts, one per ink
+function lineTexts(y, inks, variant) {
   const row = Math.floor(y / 2), q = y % 2 ? QUAD_B : QUAD
   let out = ''
   for (const ink of inks) {
@@ -101,7 +122,7 @@ function lineTexts(y, inks, variant, extraCls = '') {
     const lead = s.length - s.trimStart().length
     s = s.trim()
     if (!s) continue
-    out += `<text class="r${row}${extraCls}" x="${f(lead * CW_P)}" y="${f(row * FS_P)}" style="--c:${INK[ink]}">${s}</text>`
+    out += `<text class="r${row}" x="${f(lead * CW_P)}" y="${f(row * FS_P)}" style="--c:${INK[ink]}">${s}</text>`
   }
   return out
 }
@@ -110,101 +131,130 @@ function lineTexts(y, inks, variant, extraCls = '') {
 const order = Array.from({ length: PH }, (_, y) => y).sort((a, b) => (Math.floor(a / 16) - Math.floor(b / 16)) || (a % 8 - b % 8) || a - b)
 const arrive = []
 order.forEach((y, o) => { arrive[y] = LOAD0 + o * STEP })
-const LOADED = LOAD0 + (PH - 1) * STEP + FADE_IN // ~148 s
-// colour arrives a char row at a time, top to bottom, once every line is in
-const ATTR0 = LOADED + 4, ATTR_STEP = 1.4, ATTR_FADE = 4
-const HELD = ATTR0 + (PH / 2) * ATTR_STEP + ATTR_FADE // ~188 s
-// then it holds, until the lines dissolve in a scattered order
-const GONE0 = 520, GONE_SPREAD = 42, GONE_FADE = 12
 const goneOrder = order.map(y => [y, R()]).sort((a, b) => a[1] - b[1]).map(([y]) => y)
 const gone = []
 goneOrder.forEach((y, o) => { gone[y] = GONE0 + (o / (PH - 1)) * GONE_SPREAD })
 
 let picture = ''
 for (let y = 0; y < PH; y++) {
-  const a = arrive[y], d = gone[y]
-  kf(`l${y}`, `0%,${pc(a, C)}%{opacity:0}${pc(a + FADE_IN, C)}%,${pc(d, C)}%{opacity:1}${pc(d + GONE_FADE, C)}%,100%{opacity:0}`)
+  shown(`l${y}`, arrive[y], gone[y])
   const still = lineTexts(y, ['star', 'halo', 'ghost', 'moon', 'horizon', 'wave'], 0)
   const shA = lineTexts(y, ['refl'], 0), shB = lineTexts(y, ['refl'], 1)
   picture += `<g class="ln" style="animation-name:l${y}">${still}${shA ? `<g class="shA">${shA}</g>` : ''}${shB ? `<g class="shB">${shB}</g>` : ''}</g>`
 }
+// colour arrives a character row at a time, top to bottom, after RUN
 for (let r = 0; r < PH / 2; r++) {
   const t = ATTR0 + r * ATTR_STEP
-  kf(`a${r}`, `0%,${pc(t, C)}%{fill:var(--m)}${pc(t + ATTR_FADE, C)}%,${pc(GONE0 + GONE_SPREAD + GONE_FADE, C)}%{fill:var(--c)}${pc(GONE0 + GONE_SPREAD + GONE_FADE + 1, C)}%,100%{fill:var(--m)}`)
-  css += `.r${r}{animation:a${r} ${C}s linear infinite ${-OPEN}s}`
+  kf(`a${r}`, `0%{fill:var(--m)}${pc(t, C)}%{fill:var(--c)}${pc(GONE0, C)}%,100%{fill:var(--m)}`)
+  css += `.r${r}{animation:a${r} ${C}s steps(1) infinite ${-OPEN}s}`
 }
 css += '\n'
 
-// ── the band: raster stripes made of block glyphs, a solid core that frays into shades
-const FS_B = 9, CW_B = FS_B * 0.602, STEP_B = 8.85
-const ROWSTR = '█'.repeat(7) + '▓▓▓▒▒▒░░'
-const bandRow = (y, color) => `<text x="0" y="${f(y)}" fill="${color}">${ROWSTR}</text>`
-// pilot: an even rhythm, two rows of each colour
-const PILOT_T = 4 * STEP_B
-let pilotTile = ''
-for (let i = 0; i < 4; i++) pilotTile += bandRow(i * STEP_B, PILOT[i < 2 ? 0 : 1])
-// data: the bits of a line of text, each bit a pulse pair, a 0 short and a 1 long, after a sync
-const MESSAGE = 'MOON OVER A STILL SEA '
-const rows = [0, 0, 0, 0, 1, 1, 1, 1, 0, 1] // sync
-for (const ch of MESSAGE) {
-  for (let b = 7; b >= 0; b--) {
-    const n = (ch.charCodeAt(0) >> b) & 1 ? 2 : 1
-    for (let i = 0; i < n; i++) rows.push(0)
-    for (let i = 0; i < n; i++) rows.push(1)
-  }
-  if (rows.length * STEP_B > 1060) break
+// ── the sprite: a small ship, 12 × 8 hi-res pixels, white sail and grey hull, across the sea once a cycle
+const SHIP = [
+  '.....#......',
+  '.....##.....',
+  '.....###....',
+  '.....####...',
+  '.....#####..',
+  '.....#......',
+  '.==========.',
+  '..========..',
+]
+const shipPath = ch => {
+  let d = ''
+  SHIP.forEach((row, y) => { for (let x = 0; x < row.length; x++) if (row[x] === ch) d += `M${x} ${y}h1v1h-1z` })
+  return d
 }
-const DATA_T = f(rows.length * STEP_B)
-const dataTile = rows.map((c, i) => bandRow(i * STEP_B, DATA[c])).join('')
+const SX0 = 4, SX1 = PW - 16, SY = HZ - 6 // ship pixels: from, to, top (its hull rides on the horizon)
+const shipSteps = SX1 - SX0 // one pixel a step, as a sprite moves
+// one keyframe segment for the crossing, stepped a pixel at a time (steps() applies to each segment)
+kf('ship', `0%,${pc(SHIP0, C)}%{transform:translateX(${f(SX0 * PIX)}px)}${pc(SHIP0 + SHIP_T, C)}%,100%{transform:translateX(${f(SX1 * PIX)}px)}`)
+shown('shipOn', SHIP0, SHIP0 + SHIP_T)
+const ship = `<g class="shipOn"><g class="ship" transform="translate(${f(SX0 * PIX)} 0)"><g transform="translate(0 ${f(SY * PIX)}) scale(${f(PIX)})"><path d="${shipPath('#')}" fill="${C64.lgrey}"/><path d="${shipPath('=')}" fill="${C64.grey}"/></g></g></g>`
 
-// the band's two voices share the loading cycle: data while a picture loads, the pilot tone the rest
-// of the time, swelling in the last minute before a load
-kf('pilotA', `0%{opacity:.85}${pc(LOAD0 + 2, C)}%{opacity:.08}${pc(LOADED - 2, C)}%{opacity:.08}${pc(LOADED + 10, C)}%,${pc(GONE0 + 30, C)}%{opacity:.46}${pc(C - 8, C)}%,100%{opacity:.85}`)
-kf('dataA', `0%{opacity:0}${pc(LOAD0 + 2, C)}%,${pc(LOADED - 2, C)}%{opacity:.55}${pc(LOADED + 10, C)}%,100%{opacity:0}`)
-// the cursor rests while the machine is busy loading
-kf('idle', `0%{opacity:1}${pc(LOAD0, C)}%,${pc(HELD, C)}%{opacity:0}${pc(HELD + 3, C)}%,100%{opacity:1}`)
+// ── the log: the screen's type at the top left, 40 columns, one line every 20 units
+const FS_T = 15, LH = 20, TX = 112, TY = 64
+const LOG = [
+  ['    **** NIGHT BASIC V2 ****', 0],
+  [' 64K RAM SYSTEM  38911 BYTES FREE', 0],
+  ['', 0],
+  ['READY.', 0],
+  ['LOAD', T_LOAD],
+  ['', 0],
+  ['PRESS PLAY ON TAPE', T_PLAY],
+  ['OK', T_OK],
+  ['', 0],
+  ['SEARCHING', T_SEARCH],
+  ['FOUND MOONRISE', T_FOUND],
+  ['LOADING', T_LOADING],
+  ['READY.', T_READY],
+  ['RUN', T_RUN],
+]
+let log = ''
+LOG.forEach(([line, on], i) => {
+  if (!line) return
+  shown(`t${i}`, on, CLEAR)
+  log += `<text class="tl" style="animation-name:t${i}" y="${i * LH}">${line}</text>`
+})
+// the cursor: where the machine waits for a key; hidden while it is busy
+const CURSORS = [[4, 0, T_LOAD], [13, T_READY, T_RUN], [0, CLEAR, C]]
+const cell = FS_T * 0.602
+let cursor = ''
+CURSORS.forEach(([row, on, off], i) => {
+  shown(`c${i}`, on, off)
+  cursor += `<rect class="cu" style="animation-name:c${i}" y="${f(row * LH - 1)}" width="${f(cell)}" height="${FS_T + 2}" fill="${TYPE}"/>`
+})
+// in the still, the cursor waits on the line after RUN
+kf('never', '0%,100%{visibility:hidden}')
+cursor += `<rect class="cu" style="animation-name:never" y="${f(14 * LH - 1)}" width="${f(cell)}" height="${FS_T + 2}" fill="${TYPE}"/>`
 
-const PERIOD_PILOT = 11 // the pilot pattern rises one tile in 11 s (2.1 units/s)
-const PERIOD_DATA = 367 // the data tile rises over 367 s (about 3 units/s)
-kf('riseP', `from{transform:translateY(0)}to{transform:translateY(${-PILOT_T * 1}px)}`)
-kf('riseD', `from{transform:translateY(0)}to{transform:translateY(${-DATA_T}px)}`)
-kf('riseF', 'from{transform:translateY(0)}to{transform:translateY(-180px)}')
-kf('blink', '0%,100%{opacity:.18}45%,60%{opacity:.85}')
-kf('breathe', '0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}')
-kf('scan', '0%,100%{opacity:.5}50%{opacity:.85}')
-kf('shA', '0%,100%{opacity:1}50%{opacity:.15}')
-kf('shB', '0%,100%{opacity:.15}50%{opacity:1}')
+// ── the border: the light-blue frame of the screen at the left edge, a solid core that frays into
+// shades. While a picture loads it fills with raster stripes of the palette, rising slowly.
+const FS_B = 9, CW_B = FS_B * 0.602, STEP_B = 9
+const ROWSTR = '█'.repeat(8) + '▓▓▓▒▒▒░░'
+const bandRows = (colors, n) => Array.from({ length: n }, (_, i) => `<text x="0" y="${f(i * STEP_B)}" fill="${colors(i)}">${ROWSTR}</text>`).join('')
+const ROWS = Math.ceil(H / STEP_B) + 1
+// one band of rest rows: one <text> per row, all one colour
+const rest = bandRows(() => BORDER, ROWS)
+// the stripes: the palette in runs of two to five rows, seeded, one tile that repeats
+const STRIPE = [C64.lblue, C64.cyan, C64.purple, C64.yellow, C64.lgreen, C64.lred, C64.blue, C64.orange, C64.grey]
+const stripeColors = []
+while (stripeColors.length < 64) {
+  const c = STRIPE[Math.floor(R() * STRIPE.length)], n = 2 + Math.floor(R() * 4)
+  for (let i = 0; i < n; i++) stripeColors.push(c)
+}
+const TILE = stripeColors.length
+const stripes = bandRows(i => stripeColors[i % TILE], ROWS + TILE)
+kf('rise', `from{transform:translateY(0)}to{transform:translateY(${-TILE * STEP_B}px)}`)
+shown('loadOn', T_LOADING, LOADED)
+kf('loadOff', `0%{visibility:visible}${pc(T_LOADING, C)}%{visibility:hidden}${pc(LOADED, C)}%,100%{visibility:visible}`)
 
+// the moon's road takes turns between two shapes on the water, every 6 s
+kf('shA', '0%{visibility:visible}50%,100%{visibility:hidden}')
+kf('shB', '0%{visibility:hidden}50%,100%{visibility:visible}')
+kf('blink', '0%{visibility:visible}50%,100%{visibility:hidden}')
+
+const cyc = `${C}s steps(1) infinite ${-OPEN}s`
 const style = `<style>
 svg{--m:${MONO}}
 text{font-family:${FONT};white-space:pre;dominant-baseline:hanging}
 .pic text{font-size:${FS_P}px;fill:var(--c)}.band text{font-size:${FS_B}px}
-.ln{animation-duration:${C}s;animation-timing-function:linear;animation-iteration-count:infinite;animation-delay:${-OPEN}s}
-.shA{animation:shA 11s ease-in-out infinite}.shB{opacity:0;animation:shB 11s ease-in-out infinite}
-.pilot{opacity:.46;animation:pilotA ${C}s linear infinite ${-OPEN}s}.data{opacity:0;animation:dataA ${C}s linear infinite ${-OPEN}s}
-.rp{animation:riseP ${PERIOD_PILOT}s linear infinite}.rd{animation:riseD ${PERIOD_DATA}s linear infinite}.rf{animation:riseF 97s linear infinite}
-.idle{animation:idle ${C}s linear infinite ${-OPEN}s}.cur{opacity:.85;animation:blink 1.9s ease-in-out infinite}
-.glow{transform-box:fill-box;transform-origin:center;animation:breathe 47s ease-in-out infinite}
-.scan{opacity:.6;animation:scan 29s ease-in-out infinite -7s}\n.pos{transform-box:view-box;transform-origin:${PX}px ${f(PY + PH * PIX * K)}px}\n@media (max-aspect-ratio:3/4){.pos{transform:scale(1.22)}}
+.ln,.tl,.cu{animation-duration:${C}s;animation-timing-function:steps(1);animation-iteration-count:infinite;animation-delay:${-OPEN}s}
+.tl{font-size:${FS_T}px;fill:${TYPE}}
+.blink{animation:blink 1.8s steps(1) infinite}
+.shA{animation:shA 12s steps(1) infinite}.shB{visibility:hidden;animation:shB 12s steps(1) infinite}
+.rest{opacity:.8;animation:loadOff ${cyc}}.load{visibility:hidden;opacity:.46;animation:loadOn ${cyc}}
+.rise{animation:rise ${f(TILE * 2.2)}s steps(${TILE}) infinite}
+.shipOn{visibility:hidden;animation:shipOn ${cyc}}.ship{animation:ship ${C}s steps(${shipSteps}) infinite ${-OPEN}s}
+.pos{transform-box:view-box;transform-origin:${PX}px ${f(PY + PH * PIX * K)}px}\n@media (max-aspect-ratio:3/4){.pos{transform:scale(1.22)}}
 ${css}@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>`
 
 const DEFS = `<defs>
-<linearGradient id="ground" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="${GROUND[0]}"/><stop offset=".6" stop-color="${GROUND[1]}"/><stop offset="1" stop-color="${GROUND[2]}"/></linearGradient>
-<radialGradient id="phos"><stop offset="0" stop-color="#3b3396" stop-opacity=".42"/><stop offset=".5" stop-color="#2a2378" stop-opacity=".14"/><stop offset="1" stop-color="#2a2378" stop-opacity="0"/></radialGradient>
-<linearGradient id="spill" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3c3494" stop-opacity=".3"/><stop offset="1" stop-color="#3c3494" stop-opacity="0"/></linearGradient>
-<linearGradient id="fadeX" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-<linearGradient id="fadeX2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-<linearGradient id="fadeY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000"/><stop offset=".35" stop-color="#666"/><stop offset=".8" stop-color="#fff"/></linearGradient>
-<linearGradient id="soft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5248b0" stop-opacity="0"/><stop offset=".5" stop-color="#5248b0" stop-opacity=".5"/><stop offset="1" stop-color="#5248b0" stop-opacity="0"/></linearGradient>
-<mask id="mX" maskContentUnits="userSpaceOnUse"><rect width="${f(ROWSTR.length * CW_B)}" height="${H + 2000}" y="-1000" fill="url(#fadeX)"/></mask>
-<mask id="mY" maskContentUnits="userSpaceOnUse"><rect width="400" height="${H}" fill="url(#fadeY)"/></mask>
-<mask id="mS" maskContentUnits="userSpaceOnUse"><rect width="340" height="${H}" fill="url(#fadeX2)"/></mask>
-<mask id="mL" maskContentUnits="userSpaceOnUse"><rect x="-20" y="-20" width="${f(PW * PIX + 40)}" height="${f(PH * PIX + 40)}" fill="#fff"/><rect class="scan" x="-20" y="-20" width="${f(PW * PIX + 40)}" height="${f(PH * PIX + 40)}" fill="url(#scanP)"/></mask>
-<pattern id="pilotP" width="${f(ROWSTR.length * CW_B)}" height="${f(PILOT_T)}" patternUnits="userSpaceOnUse"><g class="band">${pilotTile}</g></pattern>
-<pattern id="softP" width="260" height="180" patternUnits="userSpaceOnUse"><rect y="20" width="260" height="70" fill="url(#soft)"/><rect y="118" width="260" height="34" fill="url(#soft)"/></pattern>
-<pattern id="scanP" width="20" height="${f(PIX)}" patternUnits="userSpaceOnUse"><rect width="20" height="${f(PIX * 0.28)}" fill="#000"/></pattern>
-<g id="dataTile" class="band">${dataTile}</g>
+<linearGradient id="ground" x1="0" y1="0" x2="1" y2=".25"><stop offset="0" stop-color="${GROUND[0]}"/><stop offset=".3" stop-color="${GROUND[1]}"/><stop offset="1" stop-color="${GROUND[2]}"/></linearGradient>
+<radialGradient id="phos"><stop offset="0" stop-color="#3b38a8" stop-opacity=".38"/><stop offset=".5" stop-color="#2a2790" stop-opacity=".13"/><stop offset="1" stop-color="#2a2790" stop-opacity="0"/></radialGradient>
+<pattern id="scanP" width="20" height="${f(PIX)}" patternUnits="userSpaceOnUse"><rect width="20" height="${f(PIX * 0.26)}" fill="#0b0a2a"/></pattern>
 </defs>`
 
 const PIC_W = PW * PIX, PIC_H = PH * PIX // unscaled
@@ -212,41 +262,32 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBo
 ${style}
 ${DEFS}
 <rect width="${W}" height="${H}" fill="url(#ground)"/>
-<g mask="url(#mY)"><g mask="url(#mS)"><rect width="340" height="${H}" fill="url(#spill)"/><g class="rf"><rect width="340" height="${H + 180}" fill="url(#softP)" opacity=".2"/></g></g></g>
-<g class="glow"><ellipse cx="${f(PX + PIC_W * K * 0.6)}" cy="${f(PY + PIC_H * K * 0.4)}" rx="320" ry="260" fill="url(#phos)"/></g>
-<g mask="url(#mY)"><g mask="url(#mX)">
-<g class="pilot"><g class="rp"><rect width="${f(ROWSTR.length * CW_B)}" height="${f(H + PILOT_T)}" fill="url(#pilotP)"/></g></g>
-<g class="data"><g class="rd"><use href="#dataTile"/><use href="#dataTile" y="${DATA_T}"/></g></g>
-</g></g>
-<g class="pos"><g transform="translate(${PX} ${PY}) scale(${K})"><g mask="url(#mL)"><g class="pic" transform="scale(1 ${SY_P})">${picture}</g></g>
-<g class="idle"><g class="cur"><rect x="${f(PIX * 8)}" y="${f(PIC_H + PIX * 2)}" width="${f(PIX * 2)}" height="${f(PIX * 3.3)}" fill="${INK.horizon}"/></g></g></g></g>
+<ellipse cx="${f(PX + PIC_W * K * 0.62)}" cy="${f(PY + PIC_H * K * 0.4)}" rx="330" ry="260" fill="url(#phos)"/>
+<g class="band"><g class="rest">${rest}</g><g class="load"><g class="rise">${stripes}</g></g></g>
+<g transform="translate(${TX} ${TY})">${log}<g class="blink">${cursor}</g></g>
+<g class="pos"><g transform="translate(${PX} ${PY}) scale(${K})"><g class="pic" transform="scale(1 ${SY_P})">${picture}</g>${ship}
+<rect width="${f(PIC_W)}" height="${f(PIC_H)}" fill="url(#scanP)" opacity=".3"/></g></g>
 </svg>`.replace(/\n\s*\n/g, '\n')
 
-// ── the poster: the picture whole, the pilot tone at rest, no motion
+// ── the poster: the screen at rest, the picture whole, no motion
 let posterPic = ''
 for (let y = 0; y < PH; y++) posterPic += lineTexts(y, ['star', 'halo', 'ghost', 'moon', 'horizon', 'wave', 'refl'], 0).replace(/ class="r\d+"/g, '').replace(/ style="--c:([^"]+)"/g, ' fill="$1"')
-let posterBand = ''
-for (let y = 0, i = 0; y < H; y += STEP_B * 2, i++) posterBand += `<rect y="${f(y)}" width="${f(ROWSTR.length * CW_B)}" height="${f(STEP_B * 2)}" fill="${PILOT[i % 2]}"/>`
+const posterLog = LOG.map(([line], i) => line ? `<text y="${i * LH}">${line}</text>` : '').join('')
 const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
-<style>text{font-family:${FONT};font-size:${FS_P}px;white-space:pre;dominant-baseline:hanging}</style>
-<defs><linearGradient id="ground" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="${GROUND[0]}"/><stop offset="1" stop-color="${GROUND[2]}"/></linearGradient>
-<radialGradient id="phos"><stop offset="0" stop-color="#3b3396" stop-opacity=".42"/><stop offset="1" stop-color="#2a2378" stop-opacity="0"/></radialGradient>
-<linearGradient id="fadeX" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-<linearGradient id="fadeX2" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-<linearGradient id="fadeY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000"/><stop offset=".35" stop-color="#666"/><stop offset=".8" stop-color="#fff"/></linearGradient>
-<mask id="mX" maskContentUnits="userSpaceOnUse"><rect width="${f(ROWSTR.length * CW_B)}" height="${H}" fill="url(#fadeX)"/></mask>
-<mask id="mY" maskContentUnits="userSpaceOnUse"><rect width="400" height="${H}" fill="url(#fadeY)"/></mask></defs>
+<style>text{font-family:${FONT};font-size:${FS_P}px;white-space:pre;dominant-baseline:hanging}.tl text{font-size:${FS_T}px;fill:${TYPE}}</style>
+<defs><linearGradient id="ground" x1="0" y1="0" x2="1" y2=".25"><stop offset="0" stop-color="${GROUND[0]}"/><stop offset=".3" stop-color="${GROUND[1]}"/><stop offset="1" stop-color="${GROUND[2]}"/></linearGradient>
+<radialGradient id="phos"><stop offset="0" stop-color="#3b38a8" stop-opacity=".38"/><stop offset="1" stop-color="#2a2790" stop-opacity="0"/></radialGradient>
+<linearGradient id="fray" x1="0" y1="0" x2="1" y2="0"><stop offset=".5" stop-color="${BORDER}"/><stop offset="1" stop-color="${BORDER}" stop-opacity="0"/></linearGradient></defs>
 <rect width="${W}" height="${H}" fill="url(#ground)"/>
-<ellipse cx="${f(PX + PIC_W * K * 0.6)}" cy="${f(PY + PIC_H * K * 0.4)}" rx="320" ry="260" fill="url(#phos)"/>
-<g mask="url(#mY)"><g mask="url(#mX)" opacity=".46">${posterBand}</g></g>
-<g transform="translate(${PX} ${PY}) scale(${K})"><g transform="scale(1 ${SY_P})">${posterPic}</g>
-<rect x="${f(PIX * 8)}" y="${f(PIC_H + PIX * 2)}" width="${f(PIX * 2)}" height="${f(PIX * 3.3)}" fill="${INK.horizon}" opacity=".85"/></g>
+<ellipse cx="${f(PX + PIC_W * K * 0.62)}" cy="${f(PY + PIC_H * K * 0.4)}" rx="330" ry="260" fill="url(#phos)"/>
+<rect width="${f(ROWSTR.length * CW_B)}" height="${H}" fill="url(#fray)" opacity=".8"/>
+<g class="tl" transform="translate(${TX} ${TY})">${posterLog}<rect y="${f(14 * LH - 1)}" width="${f(cell)}" height="${FS_T + 2}" fill="${TYPE}"/></g>
+<g transform="translate(${PX} ${PY}) scale(${K})"><g transform="scale(1 ${SY_P})">${posterPic}</g></g>
 </svg>`.replace(/\n/g, '')
 
-// the app draws nothing a <use> points at: every scene is written out in full
 const SVG = inlineUses(svg), POSTER_SVG = inlineUses(poster)
-console.log(`home-computer: ${SVG.length} characters, poster ${POSTER_SVG.length}; loaded at ${f(LOADED)} s, coloured at ${f(HELD)} s of ${C}`)
-if (POSTER_SVG.length >= 12000) throw new Error('poster over 12,000 characters')
+console.log(`home-computer: ${SVG.length} characters, poster ${POSTER_SVG.length}; loaded at ${f(LOADED)} s, run at ${f(T_RUN)} s of ${C}`)
+if (POSTER_SVG.length >= 12000) throw new Error(`poster is ${POSTER_SVG.length} characters, over 12,000`)
 if (SVG.length >= 131072) throw new Error(`scene is ${SVG.length} characters, over 131,072`)
 writeFileSync(join(ROOT, 'hooks/looks/home-computer/scene.js'),
-  `// Generated by tools/scenes/home-computer.mjs: a picture loading from tape at night, in block glyphs.\nexport const SCENE = ${JSON.stringify(SVG)}\nexport const POSTER = ${JSON.stringify(POSTER_SVG)}\n`)
+  `// Generated by tools/scenes/home-computer.mjs: an 8-bit computer at night loading a picture from tape, in block glyphs.\nexport const SCENE = ${JSON.stringify(SVG)}\nexport const POSTER = ${JSON.stringify(POSTER_SVG)}\n`)

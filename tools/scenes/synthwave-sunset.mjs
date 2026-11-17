@@ -1,181 +1,180 @@
 // Synthwave sunset scene generator. Run: node tools/scenes/synthwave-sunset.mjs
+// The last minutes of a synthwave dusk, kept low and quiet to work beside for hours. Everything is
+// type: a sun set in a halftone of glyphs sits on the horizon in the bottom-right corner, cut by the
+// bands such suns have; a low ridge of slope glyphs runs out on either side of it; below, the floor is
+// a field of dots in perspective, the points where a neon grid's lines would cross, drifting toward
+// you one row every few seconds (a flipbook of phases, switched, never faded). The sky goes from ink
+// to a dusk violet at the horizon, with a few glyph stars that change shape now and then. Rare: a
+// light runs along the horizon; a star falls.
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
-let seed = 20261115
+let seed = 20261117
 const R = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296)
 const f = n => +n.toFixed(1)
 
-const VX = 500, HY = 640 // vanishing point on the horizon
-const PINK = '#ff2fa8', HOT = '#ff7ad0', CYAN = '#5ef0ff', SUN_TOP = '#ffe58a'
+const W = 1600, H = 1000
+const HY = 770 // the horizon
+const VX = 1290 // the vanishing point, under the sun
+const FONT = 'ui-monospace,Menlo,Consolas,monospace'
+const PINK = '#e2409c', HOT = '#f07ac4', SUN_TOP = '#f6d98a', SUN_MID = '#f0915a'
 
-// ── stars: ASCII glyph pairs that cross-fade (+ ↔ *, . ↔ ·), twinkling at their own pace
-const GLYPHS = [['+', '*'], ['*', '+'], ['x', '+'], ['+', 'x'], ['*', 'x'], ['+', '.']]
-let stars = ''
-for (let i = 0; i < 46; i++) {
-  const x = f(R() * 1000), y = f(R() * 520)
-  // keep the middle of the sky a little quieter
-  if (x > 380 && x < 620 && y > 200 && R() < 0.6) continue
-  const [a, b] = GLYPHS[Math.floor(R() * GLYPHS.length)]
-  const size = f(9 + R() * 8), dur = f(11 + R() * 14), delay = f(-R() * 24)
-  const dim = f(0.35 + R() * 0.5)
-  stars += `<g class="st" style="--d:${dur}s;animation-delay:${delay}s;opacity:${dim}"><text x="${x}" y="${y}" font-size="${size}" class="ga">${a}</text><text x="${x}" y="${y}" font-size="${size}" class="gb" style="animation-delay:${delay}s">${b}</text></g>`
-}
+let css = ''
+const kf = (name, body) => { css += `@keyframes ${name}{${body}}\n` }
 
-// ── sun on the left third: stripes that slowly sink
-const SX = 290, SY = 590, SR = 165
-let cuts = ''
-for (let i = 0; i < 9; i++) cuts += `<rect x="${SX - SR - 10}" y="${f(SY - 40 + i * 26)}" width="${SR * 2 + 20}" height="${f(4 + i * 2)}"/>`
-
-// ── the sun in glyphs: denser toward its heart, a halftone made of type
-const SCW = 5.4, SCH = 9.9
+// ── the sun: a halftone of type, denser toward its heart, only the part above the horizon. Its lower
+// half is cut by bands that widen toward the horizon (rows left out).
+const SX = VX, SY = HY - 18, SR = 158
+const SCW = 6, SCH = 11
+const RAMP = ' .:-=+*#%@'
 let sunText = ''
-for (let y = SY - SR; y <= SY + SR; y += SCH) {
+for (let y = SY - SR, row = 0; y < HY - 4; y += SCH, row++) {
+  const below = (y - (SY - SR * 0.25)) / (HY - (SY - SR * 0.25)) // 0 where the bands start, 1 at the horizon
+  if (below > 0 && (row % 3 === 2 || (below > 0.45 && row % 3 === 1))) continue
   let line = '', x0 = null
   for (let x = SX - SR; x <= SX + SR; x += SCW) {
     const d = Math.hypot((x - SX) / SR, (y - SY) / SR)
     if (d > 1) { if (x0 !== null) line += ' '; continue }
     if (x0 === null) x0 = x
-    const v = 1 - d * 0.75 + (R() - 0.5) * 0.12
-    line += ' .:-=+*#%@'[Math.max(1, Math.min(9, Math.round(v * 9)))]
+    const v = 1 - d * 0.7 + (R() - 0.5) * 0.12
+    line += RAMP[Math.max(1, Math.min(9, Math.round(v * 9)))]
   }
   if (x0 !== null) sunText += `<text x="${f(x0)}" y="${f(y)}">${line.trimEnd()}</text>`
 }
 
-// ── wireframe mountains on the right: ridge + struts down to the base
-const ridge = [[560, HY], [610, 600], [655, 615], [720, 548], [770, 590], [815, 520], [880, 585], [930, 560], [1000, 610], [1080, 590], [1150, HY]]
-const ridgeD = 'M' + ridge.map(p => p.join(' ')).join(' L')
-// the same ridge in glyphs: slope characters along it, a dust of dots below that thins toward the base
-const MCW = 6, MCH = 11
-const ridgeAt = x => { for (let i = 1; i < ridge.length; i++) { const [x1, y1] = ridge[i - 1], [x2, y2] = ridge[i]; if (x <= x2) return [y1 + ((y2 - y1) * (x - x1)) / (x2 - x1), (y2 - y1) / (x2 - x1)] } return [HY, 0] }
-let mtText = ''
-for (let y = 510; y < HY; y += MCH) {
-  let line = ''
-  for (let x = 560; x <= 1150; x += MCW) {
-    const [ry, slope] = ridgeAt(x)
-    if (y < ry - MCH / 2) line += ' '
-    else if (y < ry + MCH / 2) line += Math.abs(slope) < 0.35 ? '_' : slope < 0 ? '/' : '\\'
-    else line += R() < 0.5 * (1 - (y - ry) / (HY - ry + 1)) ? (R() < 0.3 ? ':' : '.') : ' '
+// ── the ridge: low slopes of glyphs on both sides of the sun, a dust of dots beneath
+const ridge = [[760, HY], [820, HY - 22], [880, HY - 12], [950, HY - 46], [1010, HY - 20], [1070, HY - 34], [1120, HY - 8],
+  [1460, HY - 10], [1500, HY - 38], [1545, HY - 24], [1600, HY - 64], [1640, HY - 40]]
+const ridgeAt = x => {
+  for (let i = 1; i < ridge.length; i++) {
+    const [x1, y1] = ridge[i - 1], [x2, y2] = ridge[i]
+    if (x <= x2) return [y1 + ((y2 - y1) * (x - x1)) / (x2 - x1), (y2 - y1) / (x2 - x1)]
   }
-  mtText += `<text x="560" y="${f(y)}">${line.trimEnd()}</text>`
+  return [HY, 0]
 }
-let struts = ''
-for (let i = 1; i < ridge.length - 1; i++) {
-  const [x, y] = ridge[i]
-  struts += `<line x1="${x}" y1="${y}" x2="${f(x - 26)}" y2="${HY}"/><line x1="${x}" y1="${y}" x2="${f(x + 22)}" y2="${HY}"/>`
+const MCW = 6, MCH = 11
+let ridgeText = ''
+for (let y = HY - 70; y < HY - 2; y += MCH) {
+  let line = ''
+  for (let x = 760; x <= W; x += MCW) {
+    const [ry, slope] = ridgeAt(x)
+    if (Math.abs(x - SX) < SR * 0.9) line += ' ' // the sun stands in front of the far ridge
+    else if (y < ry - MCH / 2) line += ' '
+    else if (y < ry + MCH / 2) line += Math.abs(slope) < 0.3 ? '_' : slope < 0 ? '/' : '\\'
+    else line += R() < 0.4 * (1 - (y - ry) / (HY - ry + 1)) ? (R() < 0.3 ? ':' : '.') : ' '
+  }
+  ridgeText += `<text x="760" y="${f(y)}">${line.trimEnd()}</text>`
 }
-// a low far ridge on the left
-const far = 'M-400 640 L-60 640 L20 612 L90 628 L150 600 L210 626 L260 640 Z'
 
-// ── grid: horizontals rolling toward the viewer, radials fixed
-let hz = ''
-for (let k = 0; k < 18; k++) hz += `<line x1="-2000" y1="${f(HY + 4 * Math.pow(1.38, k))}" x2="3000" y2="${f(HY + 4 * Math.pow(1.38, k))}"/>`
-let rad = ''
-const radials = []
-for (let i = -14; i <= 14; i++) {
-  const x2 = VX + i * 1120
-  radials.push(x2)
-  rad += `<line x1="${VX}" y1="${HY}" x2="${x2}" y2="3840"/>`
+// ── the floor: the crossings of a grid in perspective, as dots. Row k of depth sits at
+// y = HY + A·G^(k + phase); the flipbook shows PHASES phases of one row's advance, one after another.
+const A = 4.2, G = 1.36, PHASES = 6, ROW_T = 7 // one row's advance takes ROW_T s
+const COL = 70 // the grid's spacing at y = HY + 100, in viewBox units
+function floorFrame(phase) {
+  let out = ''
+  for (let k = 0; ; k++) {
+    const dy = A * Math.pow(G, k + phase)
+    const y = HY + dy
+    if (y > H + 10) break
+    const sp = COL * dy / 100
+    if (sp < 7) continue // too far: the dots would run together
+    const xs = []
+    for (let i = -Math.ceil(VX / sp); VX + i * sp <= W + 4; i++) xs.push(f(VX + i * sp))
+    const near = Math.min(1, dy / 230) // 0 at the horizon, 1 toward the foot
+    const glyph = near > 0.55 ? '+' : near > 0.2 ? '·' : '.'
+    // bright by the horizon, dimming toward the foot, where the prompt box is
+    const a = f(0.78 - near * 0.4)
+    out += `<text y="${f(y)}" x="${xs.join(' ')}" fill-opacity="${a}">${glyph.repeat(xs.length)}</text>`
+  }
+  return out
 }
-// pulses: a bright dash that runs down a radial from the horizon, now and then
-const PULSES = [[-3, 4], [5, 33]]
-let pulses = ''
-for (const [i, at] of PULSES) {
-  const x2 = VX + i * 1120
-  const dx = (x2 - VX) / 3200, len = 0.012 * 3200 // dash length along the line, in y
-  const tx = f(dx * 360), ty = 360
-  pulses += `<g class="pu" style="--tx:${tx}px;--ty:${ty}px;animation-delay:${at}s"><line x1="${VX}" y1="${HY}" x2="${f(VX + dx * len)}" y2="${f(HY + len)}"/></g>`
+kf('ph', `0%{visibility:visible}${f(100 / PHASES)}%,100%{visibility:hidden}`)
+let floor = ''
+for (let p = 0; p < PHASES; p++) {
+  // frame p shows phase p/PHASES; frame 0 is the still
+  const delay = f((p / PHASES) * ROW_T - ROW_T)
+  floor += `<g class="ph${p === 0 ? ' p0' : ''}" style="animation-delay:${delay}s">${floorFrame(p / PHASES)}</g>`
 }
+
+// ── stars: glyphs that change shape now and then (one switch, never a fade), dim and sparse
+const SHAPES = [['+', '·'], ['*', '+'], ['·', '+'], ['x', '·'], ['+', '*']]
+let stars = ''
+for (let i = 0; i < 40; i++) {
+  const x = f(R() * W), y = f(20 + R() * (HY - 160))
+  if (x < 1050 && R() < 0.55) continue // fewer over the conversation
+  const [a, b] = SHAPES[Math.floor(R() * SHAPES.length)]
+  const size = f(9 + R() * 7), dur = f(17 + R() * 40), delay = f(-R() * 60), dim = f(0.25 + R() * 0.45)
+  stars += `<g opacity="${dim}" font-size="${size}"><text x="${x}" y="${y}" class="sa" style="animation-duration:${dur}s;animation-delay:${delay}s">${a}</text><text x="${x}" y="${y}" class="sb" style="animation-duration:${dur}s;animation-delay:${delay}s">${b}</text></g>`
+}
+
+// ── rare: a light that runs along the horizon (a string of dashes moved a cell at a time), a falling star
+const RUN = 113, RUN_T = 9
+kf('run', `0%{transform:translateX(0)}${f((RUN_T / RUN) * 100)}%,100%{transform:translateX(${-W - 300}px)}`)
+kf('runOn', `0%{visibility:visible}${f((RUN_T / RUN) * 100)}%,100%{visibility:hidden}`)
+const FALL = 151, FALL_T = 2.4
+kf('fall', `0%{transform:translate(0,0)}${f((FALL_T / FALL) * 100)}%,100%{transform:translate(-240px,110px)}`)
+kf('fallOn', `0%{visibility:visible}${f((FALL_T / FALL) * 100)}%,100%{visibility:hidden}`)
+kf('sw', '0%{visibility:visible}85%,100%{visibility:hidden}')
+kf('swb', '0%{visibility:hidden}85%,100%{visibility:visible}')
 
 const style = `
-text{font-family:ui-monospace,Menlo,Consolas,monospace;fill:#fbe8ff;white-space:pre}
-.suntext text{font-size:9px;dominant-baseline:central;fill:url(#sunfillU)}.mtext text{font-size:10px;fill:${HOT};dominant-baseline:central}.mtext{opacity:.85}
-.st{animation:tw var(--d) ease-in-out infinite}
-@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
-.st .gb{opacity:0;animation:swap 23s steps(1) infinite}
-.st .ga{animation:swap2 23s steps(1) infinite;animation-delay:inherit}
-@keyframes swap{0%,70%{opacity:0}71%,100%{opacity:1}}
-@keyframes swap2{0%,70%{opacity:1}71%,100%{opacity:0}}
-.sunbands{animation:sink 38s linear infinite}
-@keyframes sink{from{transform:translateY(0)}to{transform:translateY(26px)}}
-.sun{animation:breathe 23s ease-in-out infinite}
-@keyframes breathe{0%,100%{opacity:.93}50%{opacity:1}}
-.roll{transform-box:view-box;transform-origin:${VX}px ${HY}px;animation:roll 17s linear infinite}
-@keyframes roll{from{transform:scale(1)}to{transform:scale(1.38)}}
-.grid line{stroke:${PINK};stroke-width:1.1;stroke-opacity:.75;vector-effect:non-scaling-stroke}
-.pu{opacity:0;animation:pulse 61s cubic-bezier(.55,0,.9,.5) infinite}
-.pu line{stroke:${CYAN};stroke-width:3;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:url(#glow)}
-@keyframes pulse{0%{opacity:0;transform:translate(0,0)}1%{opacity:.8}12%{opacity:.6;transform:translate(var(--tx),var(--ty))}13%,100%{opacity:0;transform:translate(var(--tx),var(--ty))}}
-.wire{fill:none;stroke:${HOT};stroke-width:1.3;vector-effect:non-scaling-stroke;stroke-linejoin:round}
-.wire line{stroke:${PINK};stroke-opacity:.45;stroke-width:1;vector-effect:non-scaling-stroke}
-.trace{stroke:${CYAN};stroke-width:2;fill:none;stroke-dasharray:60 2000;stroke-dashoffset:60;opacity:0;animation:trace 67s ease-in-out infinite 12s;vector-effect:non-scaling-stroke;filter:url(#glow)}
-@keyframes trace{0%{stroke-dashoffset:60;opacity:0}2%{opacity:.8}20%{stroke-dashoffset:-760;opacity:.8}22%,100%{stroke-dashoffset:-760;opacity:0}}
-.shoot{opacity:0;animation:shoot 83s ease-out infinite 25s}
-@keyframes shoot{0%{opacity:0;transform:translate(0,0)}.4%{opacity:.9}2.6%{opacity:0;transform:translate(-260px,120px)}100%{opacity:0;transform:translate(-260px,120px)}}
-.flare{opacity:.35;animation:flare 71s ease-in-out infinite 20s}
-@keyframes flare{0%,88%,100%{opacity:.35}93%{opacity:.9}}
-.haze{animation:haze 37s ease-in-out infinite}
-@keyframes haze{0%,100%{opacity:.75}50%{opacity:1}}
-@media (max-aspect-ratio:4/5){.left{transform:translateX(150px)}.right{transform:translateX(-170px)}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important}.pu,.shoot,.trace{opacity:0}}
+text{font-family:${FONT};white-space:pre;dominant-baseline:central}
+.sun text{font-size:10px;fill:url(#sunfill)}.sun{opacity:.82}
+.ridge text{font-size:10px;fill:${HOT}}.ridge{opacity:.42}
+.floor text{font-size:11px;fill:${PINK};text-anchor:middle}
+.stars text{fill:#efe2ff}
+.ph{visibility:hidden;animation:ph ${ROW_T}s steps(1) infinite}.p0{visibility:visible}
+.sa{animation:sw 30s steps(1) infinite}.sb{visibility:hidden;animation:swb 30s steps(1) infinite}
+.runOn{visibility:hidden;animation:runOn ${RUN}s steps(1) infinite 37s}.run{animation:run ${RUN}s steps(${Math.round((W + 300) / 12)}) infinite 37s}
+.run text{font-size:10px;fill:${HOT}}
+.fallOn{visibility:hidden;animation:fallOn ${FALL}s steps(1) infinite 71s}.fall{animation:fall ${FALL}s steps(24) infinite 71s}
+.fall text{font-size:11px;fill:#f4eaff}
+${css}@media (max-aspect-ratio:3/4){.pos{transform:translateX(-120px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 `
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+const DEFS = `<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="${HY}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0b0520"/><stop offset=".45" stop-color="#140a2c"/><stop offset=".78" stop-color="#26103f"/><stop offset=".93" stop-color="#3d1450"/><stop offset="1" stop-color="#5a1a5c"/></linearGradient>
+<linearGradient id="ground" x1="0" y1="${HY}" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1c0a32"/><stop offset=".25" stop-color="#110624"/><stop offset="1" stop-color="#0c051c"/></linearGradient>
+<linearGradient id="sunfill" gradientUnits="userSpaceOnUse" x1="0" y1="${SY - SR}" x2="0" y2="${HY}"><stop offset="0" stop-color="${SUN_TOP}"/><stop offset=".55" stop-color="${SUN_MID}"/><stop offset="1" stop-color="${PINK}"/></linearGradient>
+<radialGradient id="halo" cx="${SX}" cy="${HY - 30}" r="430" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d0408e" stop-opacity=".3"/><stop offset=".45" stop-color="#9a2a80" stop-opacity=".1"/><stop offset="1" stop-color="#9a2a80" stop-opacity="0"/></radialGradient>
+<linearGradient id="hz" x1="0" y1="${HY - 26}" x2="0" y2="${HY + 26}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#e2409c" stop-opacity="0"/><stop offset=".5" stop-color="#e2409c" stop-opacity=".22"/><stop offset="1" stop-color="#e2409c" stop-opacity="0"/></linearGradient>
+<linearGradient id="foot" x1="0" y1="${HY}" x2="0" y2="${H}" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0c051c" stop-opacity="0"/><stop offset=".6" stop-color="#0c051c" stop-opacity=".25"/><stop offset="1" stop-color="#0c051c" stop-opacity=".75"/></linearGradient>
+</defs>`
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice">
 <style>${style}</style>
-<defs>
-<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0" stop-color="#06021a"/><stop offset=".3" stop-color="#140834"/><stop offset=".5" stop-color="#2e0c55"/><stop offset=".6" stop-color="#6a1470"/><stop offset=".64" stop-color="#c2307e"/><stop offset=".641" stop-color="#12052a"/><stop offset="1" stop-color="#07021a"/>
-</linearGradient>
-<linearGradient id="sunfillU" gradientUnits="userSpaceOnUse" x1="0" y1="${SY - SR}" x2="0" y2="${SY + SR}"><stop offset="0" stop-color="${SUN_TOP}"/><stop offset=".5" stop-color="#ff9a4a"/><stop offset="1" stop-color="${PINK}"/></linearGradient>
-<linearGradient id="sunfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${SUN_TOP}"/><stop offset=".5" stop-color="#ff9a4a"/><stop offset="1" stop-color="${PINK}"/></linearGradient>
-<radialGradient id="halo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff5fb4" stop-opacity=".5"/><stop offset=".6" stop-color="#ff2fa8" stop-opacity=".12"/><stop offset="1" stop-color="#ff2fa8" stop-opacity="0"/></radialGradient>
-<linearGradient id="hz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff4fb8" stop-opacity="0"/><stop offset=".55" stop-color="#ff4fb8" stop-opacity=".5"/><stop offset="1" stop-color="#ff4fb8" stop-opacity="0"/></linearGradient>
-<linearGradient id="floorfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12052a"/><stop offset=".12" stop-color="#12052a" stop-opacity="0"/><stop offset="1" stop-color="#07021a" stop-opacity=".35"/></linearGradient>
-<linearGradient id="streak" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>
-<mask id="bands"><rect x="-500" y="-500" width="2000" height="2000" fill="#fff"/><g class="sunbands" fill="#000">${cuts}</g></mask>
-<clipPath id="above"><rect x="-2000" y="-1000" width="5000" height="${HY + 1000}"/></clipPath>
-<clipPath id="floor"><rect x="-2000" y="${HY}" width="5000" height="2000"/></clipPath>
-<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-</defs>
-<rect x="-2000" y="-1000" width="5000" height="3000" fill="url(#sky)"/>
-<g>${stars}</g>
-<g class="shoot"><line x1="840" y1="120" x2="900" y2="92" stroke="url(#streak)" stroke-width="1.6" transform="rotate(180 870 106)"/></g>
-<g class="left">
-<circle cx="${SX}" cy="${SY}" r="${SR * 2}" fill="url(#halo)"/>
-<g clip-path="url(#above)"><g class="sun" mask="url(#bands)"><g class="suntext" fill="url(#sunfillU)">${sunText}</g></g></g>
-<path d="${far}" fill="#1a0835" stroke="${PINK}" stroke-opacity=".5" stroke-width="1" vector-effect="non-scaling-stroke"/>
+${DEFS}
+<rect width="${W}" height="${HY}" fill="url(#sky)"/>
+<rect y="${HY}" width="${W}" height="${H - HY}" fill="url(#ground)"/>
+<g class="stars">${stars}</g>
+<g class="fallOn"><g class="fall"><text x="1180" y="150">*</text><text x="1192" y="144" opacity=".5">.</text><text x="1204" y="138" opacity=".25">.</text></g></g>
+<rect width="${W}" height="${H}" fill="url(#halo)"/>
+<g class="pos">
+<g class="ridge">${ridgeText}</g>
+<g class="sun">${sunText}</g>
+<g class="floor">${floor}</g>
 </g>
-<g class="right">
-<path d="${ridgeD} L1150 ${HY} L560 ${HY} Z" fill="#14062c" opacity=".7"/>
-<g class="mtext">${mtText}</g><g class="wire"><path class="trace" d="${ridgeD}"/></g>
-</g>
-<rect class="haze" x="-2000" y="${HY - 70}" width="5000" height="110" fill="url(#hz)"/>
-<rect x="-2000" y="${HY}" width="5000" height="2000" fill="#0b0320"/>
-<g clip-path="url(#floor)" class="grid">
-<g class="roll">${hz}</g>
-<g>${rad}</g>
-${pulses}
-<rect x="-2000" y="${HY}" width="5000" height="400" fill="url(#floorfade)"/>
-</g>
-<line class="flare" x1="-2000" y1="${HY}" x2="3000" y2="${HY}" stroke="${HOT}" stroke-width="2.4" vector-effect="non-scaling-stroke"/>
-</svg>`
+<rect y="${HY - 26}" width="${W}" height="52" fill="url(#hz)"/>
+<g class="runOn"><g class="run"><text x="${W + 20}" y="${HY + 1}">-=≡≡=-</text></g></g>
+<rect y="${HY}" width="${W}" height="${H - HY}" fill="url(#foot)"/>
+</svg>`.replace(/\n\s*\n/g, '\n')
 
-// the poster: sky, the sun of type, the glyph ridge, a still grid; no stars or events
-const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" width="320" height="180">
-<style>text{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;dominant-baseline:central}.s text{font-size:9px;fill:url(#sunfillU)}.m text{font-size:10px;fill:${HOT}}</style>
-<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06021a"/><stop offset=".3" stop-color="#140834"/><stop offset=".5" stop-color="#2e0c55"/><stop offset=".6" stop-color="#6a1470"/><stop offset=".64" stop-color="#c2307e"/><stop offset=".641" stop-color="#12052a"/><stop offset="1" stop-color="#07021a"/></linearGradient>
-<linearGradient id="sunfillU" gradientUnits="userSpaceOnUse" x1="0" y1="${SY - SR}" x2="0" y2="${SY + SR}"><stop offset="0" stop-color="${SUN_TOP}"/><stop offset=".5" stop-color="#ff9a4a"/><stop offset="1" stop-color="${PINK}"/></linearGradient>
-<clipPath id="above"><rect x="-2000" y="-1000" width="5000" height="${HY + 1000}"/></clipPath></defs>
-<rect x="-2000" y="-1000" width="5000" height="3000" fill="url(#sky)"/>
-<g class="s" clip-path="url(#above)">${sunText}</g><g class="m" opacity=".85">${mtText}</g>
-<g stroke="${PINK}" stroke-opacity=".7" stroke-width="1.6">${hz.slice(0, hz.length)}${rad}</g>
+// the poster: the scene at rest, without stars or events
+const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMax slice" width="320" height="180">
+<style>text{font-family:${FONT};white-space:pre;dominant-baseline:central}.sun text{font-size:10px;fill:url(#sunfill)}.ridge text{font-size:10px;fill:${HOT}}</style>
+${DEFS.replace(/<linearGradient id="foot".*?<\/linearGradient>/, '')}
+<rect width="${W}" height="${HY}" fill="url(#sky)"/><rect y="${HY}" width="${W}" height="${H - HY}" fill="url(#ground)"/>
+<rect width="${W}" height="${H}" fill="url(#halo)"/>
+<g class="ridge" opacity=".42">${ridgeText}</g><g class="sun" opacity=".82">${sunText}</g>
+<rect y="${HY - 26}" width="${W}" height="52" fill="url(#hz)"/>
 </svg>`.replace(/\n/g, '')
-if (poster.length >= 12000) throw new Error(`poster is ${poster.length} characters`)
+if (poster.length >= 12000) throw new Error(`poster is ${poster.length} characters, over 12,000`)
+if (svg.length >= 131072) throw new Error(`scene is ${svg.length} characters, over 131,072`)
 
-const out = join(ROOT, 'hooks/looks/synthwave-sunset/scene.js')
-writeFileSync(out, `// Generated: a striped sun setting on the left, wireframe mountains on the right,
-// ASCII stars, a rolling neon grid with now-and-then light pulses.\nexport const SCENE = ${JSON.stringify(svg)}\nexport const POSTER = ${JSON.stringify(poster)}\n`)
-console.log('synthwave-sunset', svg.length, 'poster', poster.length)
+writeFileSync(join(ROOT, 'hooks/looks/synthwave-sunset/scene.js'),
+  `// Generated by tools/scenes/synthwave-sunset.mjs: a sun of type on the horizon, a field of dots drifting toward you.\nexport const SCENE = ${JSON.stringify(svg)}\nexport const POSTER = ${JSON.stringify(poster)}\n`)
+console.log(`synthwave-sunset: ${svg.length} characters, poster ${poster.length}`)

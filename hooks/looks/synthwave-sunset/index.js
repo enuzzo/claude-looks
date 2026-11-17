@@ -7,7 +7,7 @@ const { SCENE } = SCENE_MODULE
 export default {
   id: 'synthwave-sunset',
   label: 'Synthwave sunset',
-  description: 'Violet night sky, striped sun, rolling neon grid, hot pink accents.',
+  description: 'A dark dusk set in type: a banded sun of glyphs on the horizon, a field of dots drifting toward you, hot pink accents.',
   problems,
   args: {
     colors: theme,
@@ -16,6 +16,6 @@ export default {
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'A striped synthwave sun setting behind mountains over a rolling neon grid',
+    alt: 'A dark violet dusk made of text characters: in the bottom-right corner a banded sun of glyphs sits on the horizon between low glyph ridges, a field of pink dots in perspective drifts slowly toward the viewer below it, and a few glyph stars hang in the sky',
   },
 }

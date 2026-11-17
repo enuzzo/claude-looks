@@ -47,7 +47,7 @@ A fresh install wears `synthwave-sunset`.
 
 ### `synthwave-sunset`
 
-Dark only. A sun made of type, denser toward its heart, sinking behind slow bands on the left; a ridge of `/` and `\` glyphs dusted with dots on the right; a sky of ASCII stars breathing in and out, and a neon grid rolling toward you, slowly. Once in a long while a light runs down the grid, a spark traces the ridge or a star falls. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
+Dark only. A synthwave dusk kept low and quiet, to work beside for hours, and made only of type. In the bottom-right corner a sun set in a halftone of glyphs sits on the horizon, cut by the bands such suns have, between low ridges of slope glyphs. Below it the floor is a field of dots in perspective, the crossings of a neon grid with the lines left out, drifting toward you one row every few seconds. The sky goes from ink to a dusk violet, with a few glyph stars that change shape now and then. Once in a while a light runs along the horizon or a star falls. Hot pink accent; errors stay red, successes go neon mint, warnings amber. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -55,7 +55,7 @@ Dark only. A sun made of type, denser toward its heart, sinking behind slow band
 
 ### `home-computer`
 
-Dark only. The memory of an 8-bit computer loading from tape at night. Raster stripes of block glyphs rise slowly up the left edge, an even pilot tone and then data. In the bottom-left corner a small picture in quadrant blocks (a crescent moon over a still sea) loads line by line over a few minutes, colours in, holds, dissolves, and loads again; a block cursor breathes beneath it. Light blue accent; errors stay red, successes go 8-bit green, warnings yellow. Respects *reduce motion*.
+Dark only. An 8-bit home computer of the C64 kind left on at night, in its own sixteen colours taken down for hours of work: the screen's blue for the ground and the app's surfaces, its light-blue type for the accent. The light-blue border runs down the left edge. At the top left, in uppercase type, the machine's log of one evening: READY., LOAD, PRESS PLAY ON TAPE, SEARCHING, FOUND MOONRISE, LOADING. While it loads, slow raster stripes in the palette's colours rise through the border, and in the bottom-left corner a small picture in quadrant blocks (a crescent moon over a still sea) arrives line by line, first in one colour, then coloured in row by row after RUN. It holds for minutes, the moon's road shifting on the water; now and then a small sprite ship sails across. Then the screen clears to a lone cursor, and the machine starts again. Light-blue accent; errors go light red, successes light green, warnings yellow. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|

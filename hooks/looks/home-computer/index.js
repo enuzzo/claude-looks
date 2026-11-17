@@ -7,15 +7,15 @@ const { SCENE } = SCENE_MODULE
 export default {
   id: 'home-computer',
   label: 'Home computer',
-  description: 'Night blue-violet, an 8-bit picture loading from tape in block glyphs, raster stripes at the edge, light blue accents.',
+  description: 'An 8-bit computer of the C64 kind at night: blue screen, light-blue border and type, a picture loading from tape in block glyphs.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'home-computer', glass: { blur: 5, tint: '#110d2e', opacity: 0.42 } },
+    backdrop: { id: 'home-computer', glass: { blur: 5, tint: '#16144f', opacity: 0.42 } },
   },
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'A dark blue-violet night with, in the bottom-left corner, a small picture of a crescent moon over a still sea made of quadrant block characters, which now and then dissolves and loads again line by line, while a narrow band of tape-loading stripes rises slowly along the left edge and a block cursor breathes beneath it',
+    alt: 'A night-blue 8-bit computer screen: a light-blue border down the left edge, the machine\'s log in uppercase type at the top left (READY., LOAD, PRESS PLAY ON TAPE, LOADING, RUN), and in the bottom-left corner a small picture of a crescent moon over a still sea made of quadrant block characters, which loads line by line while raster stripes rise in the border, then holds while a small sprite ship now and then sails across',
   },
 }

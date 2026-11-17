@@ -23,8 +23,8 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    most one or two quiet companions. Nothing important crosses the middle third or the foot, where the
    prompt box is.
 3. **Slow.** Ambient cycles last 20 s or more; a crossing takes minutes; a subject's own motion (a wing,
-   a flame, a wave) takes 8 to 20 s per cycle. Frames dissolve into one another (crossfaded flipbooks),
-   they do not step. If you notice it move from the corner of your eye while reading, it is too fast.
+   a flame, a wave) takes 8 to 20 s per cycle. Frames switch like the pages of a flipbook, a
+   few seconds apart (rule 9 says why they do not fade). If you notice it move from the corner of your eye while reading, it is too fast.
 4. **Rare events, never in sync.** A surprise (a visitor, a falling star, a light passing) comes on a
    long cycle, minutes apart, with durations that share no factor (co-prime: 151 s, 487 s, 613 s), so
    the scene never visibly loops.
@@ -79,13 +79,13 @@ until they meet this standard.
 | Look | Rework | Subject |
 |---|---|---|
 | `abyssal` | **done** (2026-11-16) | a raymarched ASCII manta gliding in the bottom-right corner; jellies at the edge; a rare turtle |
-| `synthwave-sunset` | **done** (2026-11-16) | a sun made of type, a glyph ridge, a slow neon grid; rare sparks |
+| `synthwave-sunset` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the bottom-right, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
 | `ascii-tide` | **done** (2026-11-16) | a moon ray-cast into glyphs in the top-right; a perspective sea of type with its light on the water; rare falling stars |
 | `koi-script` | **done** (2026-11-16) | three raymarched ASCII koi in three coats, sized and placed by the golden ratio, circling in the bottom-right corner; rings of dots in the near one's wake; a rare petal; night water, and jade water with caustics by day |
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
 | `digital-rain` | **done** (2026-11-16) | a slow curtain of glyph rain at the right edge, three depths; a rare lone column in the empty field |
-| `home-computer` | **done** (2026-11-16) | a block-mosaic moon loading from tape in the bottom-left; raster stripes at the left edge |
+| `home-computer` | **done** (2026-11-17, C64 rework) | an 8-bit machine's night screen: its log at the top left, a block-mosaic moon loading from tape in the bottom-left, raster stripes in the light-blue border; a rare sprite ship |
 | `neon-punk` | withdrawn to `drafts/` (its wall is a generated image) | |
 | `cyberpunk` | withdrawn to `drafts/` | |
 | `aurora` | withdrawn to `drafts/` | |

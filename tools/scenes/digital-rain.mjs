@@ -27,9 +27,9 @@ const glyph = () => { const r = R(); return r < 0.74 ? KANA[Math.floor(R() * KAN
 
 // ── the three depths: font size, row step, glyph colour, fall time for the full height (s)
 const LAYERS = {
-  far: { fs: 11, step: 12.5, fill: '#2f9a55', head: '#9fe8b4', fall: 60 },
-  mid: { fs: 15, step: 17, fill: '#36c463', head: '#c8ffd6', fall: 50 },
-  near: { fs: 21, step: 23.5, fill: '#4fef80', head: '#eafff0', fall: 40 },
+  far: { fs: 11, step: 12.5, fill: '#2f9a55', head: '#9fe8b4', fall: 34 },
+  mid: { fs: 15, step: 17, fill: '#36c463', head: '#c8ffd6', fall: 28 },
+  near: { fs: 21, step: 23.5, fill: '#4fef80', head: '#eafff0', fall: 22 },
 }
 
 // ── the columns, placed by hand: x, depth, opacity (thinning toward the middle), the cycle between two
@@ -38,27 +38,27 @@ const LAYERS = {
 // the still (head height, viewBox units; null: dark in the still).
 const COLS = [
   // near: five columns at the edge, the subject
-  { x: 1572, d: 'near', o: 0.95, p: 53, ph: 0.12, L: 430, xf: 29, still: 560 },
-  { x: 1524, d: 'near', o: 0.82, p: 61, ph: 0.55, L: 380, xf: 37, still: 300 },
-  { x: 1473, d: 'near', o: 0.68, p: 59, ph: 0.83, L: 460, xf: 31, still: 770 },
-  { x: 1425, d: 'near', o: 0.5, p: 71, ph: 0.34, L: 400, xf: 41, still: null },
-  { x: 1367, d: 'near', o: 0.32, p: 67, ph: 0.66, L: 360, xf: 23, still: 440 },
+  { x: 1572, d: 'near', o: 1, p: 37, ph: 0.12, L: 430, xf: 29, still: 560 },
+  { x: 1524, d: 'near', o: 0.96, p: 43, ph: 0.55, L: 380, xf: 37, still: 300 },
+  { x: 1473, d: 'near', o: 0.8, p: 41, ph: 0.83, L: 460, xf: 31, still: 770 },
+  { x: 1425, d: 'near', o: 0.6, p: 47, ph: 0.34, L: 400, xf: 41, still: null },
+  { x: 1367, d: 'near', o: 0.4, p: 53, ph: 0.66, L: 360, xf: 23, still: 440 },
   // mid
-  { x: 1591, d: 'mid', o: 0.62, p: 73, ph: 0.71, L: 440, xf: 19, still: 230 },
-  { x: 1549, d: 'mid', o: 0.6, p: 79, ph: 0.25, L: 400, xf: 43, still: 680 },
-  { x: 1499, d: 'mid', o: 0.54, p: 67, ph: 0.04, L: 480, xf: 31, still: null },
-  { x: 1450, d: 'mid', o: 0.48, p: 83, ph: 0.47, L: 420, xf: 37, still: 520 },
-  { x: 1342, d: 'mid', o: 0.3, p: 89, ph: 0.18, L: 460, xf: 29, still: 640 },
+  { x: 1591, d: 'mid', o: 0.73, p: 53, ph: 0.71, L: 440, xf: 19, still: 230 },
+  { x: 1549, d: 'mid', o: 0.71, p: 59, ph: 0.25, L: 400, xf: 43, still: 680 },
+  { x: 1499, d: 'mid', o: 0.64, p: 47, ph: 0.04, L: 480, xf: 31, still: null },
+  { x: 1450, d: 'mid', o: 0.58, p: 61, ph: 0.47, L: 420, xf: 37, still: 520 },
+  { x: 1342, d: 'mid', o: 0.38, p: 67, ph: 0.18, L: 460, xf: 29, still: 640 },
 ]
 // far: a finer, dimmer screen behind, from the edge to where the band dissolves
 const FARX = [1597, 1584, 1561, 1541, 1518, 1494, 1470, 1447, 1423, 1398, 1371, 1345, 1322, 1296, 1263, 1231, 1196]
-const FARP = [83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167]
+const FARP = [59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137]
 const FARXF = [17, 19, 23, 29, 31, 37, 41, 43, 47]
 // every third far column: enough for depth (tools/qa/scenes.mjs keeps the frame cost in check)
 FARX.forEach((x, i) => {
   if (i % 3 !== 0) return
   const t = (W - x) / (W - 1196) // 0 at the edge, 1 at the band's inner end
-  COLS.push({ x, d: 'far', o: f(0.42 - t * 0.34), p: FARP[i], ph: (i * 0.618034) % 1, L: 380 + ((i * 7) % 5) * 40, xf: FARXF[i % FARXF.length], still: i % 3 === 1 ? 180 + ((i * 263) % 640) : null })
+  COLS.push({ x, d: 'far', o: f(0.5 - t * 0.36), p: FARP[i], ph: (i * 0.618034) % 1, L: 380 + ((i * 7) % 5) * 40, xf: FARXF[i % FARXF.length], still: i % 3 === 1 ? 180 + ((i * 263) % 640) : null })
 })
 // the thoughts: one column far out in the empty field, at two places on two long cycles
 const THOUGHTS = [
@@ -67,7 +67,7 @@ const THOUGHTS = [
 ]
 
 // the waiting glyphs: every column is faintly there even when no drop passes
-const RESIDUE = { far: 0.06, mid: 0.08, near: 0.1 }
+const RESIDUE = { far: 0.08, mid: 0.11, near: 0.14 }
 
 let css = ''
 let body = ''
