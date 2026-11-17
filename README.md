@@ -57,9 +57,9 @@ Dark only. A synthwave dusk kept low and quiet, to work beside for hours, and ma
 
 Dark only, in two dresses chosen by the hour. An 8-bit home computer of the C64 kind left on, in its own sixteen colours taken down for hours of work: the screen's blue for the ground and the app's surfaces, its light-blue type for the accent. The light-blue border runs down the left edge. At the top, beside the sidebar, in uppercase type, the machine's log: READY., LOAD, PRESS PLAY ON TAPE, SEARCHING, FOUND MOONRISE, LOADING, and a cursor blinking under RUN while the picture holds. While it loads, slow raster stripes in the palette's colours rise through the border, and low on the right, between the conversation and the right panel, a small picture in quadrant blocks, with no frame, its edges thinning out into the blue (at night a crescent moon over a still sea; from 7 in the morning to 7 in the evening the sun over the same sea, with clouds and birds, on a lighter blue) arrives line by line, first in one colour, then coloured in row by row after RUN. It holds for minutes, the moon's road shifting on the water; now and then a small sprite ship sails across. Then the screen clears to a lone cursor, and the machine starts again. Light-blue accent; errors go light red, successes light green, warnings yellow. Respects *reduce motion*.
 
-| Desktop | Phone |
-|---|---|
-| ![Basic on desktop](docs/screenshots/basic-dark-desktop.png) | <img src="docs/screenshots/basic-dark-mobile.png" alt="Basic on a phone" width="260"> |
+| Desktop, night | Desktop, day | Phone |
+|---|---|---|
+| ![Basic at night on desktop](docs/screenshots/basic-dark-desktop.png) | ![Basic by day on desktop](docs/screenshots/basic-day-dark-desktop.png) | <img src="docs/screenshots/basic-dark-mobile.png" alt="Basic on a phone" width="260"> |
 
 ### `rain`
 
@@ -79,7 +79,7 @@ Dark only. A night sea set entirely in type. High on the left, beside the sideba
 
 ### `abyssal`
 
-Dark only. The deep sea, almost black, breathing with two slow glows of teal and violet, plankton drifting down in specks of type. Low on the left, beside the sidebar, a manta glides on a lazy orbit, its wings bending as it flies; far off on the right two moon jellies pulse, and once every few minutes a sea turtle rises past in the margin. The animals are real 3D solids, raymarched into ASCII when the scene is built (`tools/scenes/ascii3d.mjs`), one frame per step of their swim, and the frames dissolve into one another. Sea-glass accent on deep teal. Respects *reduce motion*.
+Dark only. The deep sea, drawn the way ASCII games like Effulgence draw their worlds: glyphs set in 3D and glowing. Low on the left, beside the sidebar, a shaft of light falls from the surface and frays into thin streaks; in it a manta glides, its glyphs set on its own body in rows that bend with the wings, seen in perspective (the near wing's glyphs larger and brighter), coloured from electric violet through a white core to aquamarine, its wingbeat a slow wave running out to the tips. Far off on the right two moon jellies pulse, magenta crowns fading to blue at the rim, tentacles lit from magenta through blue to cyan; lime algae sway at the left, magenta ones at the right, and once every few minutes a sea turtle rises past in the margin. Sea-glass accent on deep teal. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
@@ -137,7 +137,8 @@ the register of which looks are reworked.
    ```
    Keep the cost under 2.5 ms on the bench. What makes a frame cheap is in
    [docs/DIRECTION.md](docs/DIRECTION.md).
-4. Screenshot it for this README (needs Google Chrome; set `CHROME` to use another path):
+4. Shoot its pictures for this README: the app's window at 1920 × 1080 with the sidebar and the right
+   panel open, a phone, and the scene alone, in headless Chrome for Testing:
    ```bash
    node tools/preview.mjs <name>
    ```

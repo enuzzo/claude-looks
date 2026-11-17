@@ -146,7 +146,7 @@ until they meet this standard.
 
 | Look | Rework | Subject |
 |---|---|---|
-| `abyssal` | **done** (2026-11-16) | a raymarched ASCII manta gliding low in the open field on the left; jellies far off on the right; a rare turtle |
+| `abyssal` | **done** (2026-11-17, Effulgence rework) | a manta of glyphs set in 3D (tools/scenes/glyph3d.mjs), glowing, in a shaft of light low on the left; 3D-glyph moon jellies with coloured tentacles on the right; lime and magenta algae; a rare turtle |
 | `synthwave` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the open field on the left, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
 | `tide` | **done** (2026-11-16) | a moon ray-cast into glyphs high in the open field on the left; a perspective sea of type with its light on the water; rare falling stars |
 | `koi` | **done** (2026-11-16) | three raymarched ASCII koi in three coats, sized and placed by the golden ratio, circling low in the open field on the left; rings of dots in the near one's wake; a rare petal; night water, and jade water with caustics by day |
