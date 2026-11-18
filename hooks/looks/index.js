@@ -6,6 +6,7 @@ import rain from './rain/index.js'
 import tide from './tide/index.js'
 import abyssal from './abyssal/index.js'
 import koi from './koi/index.js'
+import christmas from './christmas/index.js'
 
 /** @type {readonly import('./types').Look[]} */
 export const LOOKS = [
@@ -15,6 +16,7 @@ export const LOOKS = [
   tide,
   abyssal,
   koi,
+  christmas,
 ]
 
 export const DEFAULT_LOOK = 'synthwave'

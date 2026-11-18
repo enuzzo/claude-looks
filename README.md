@@ -93,6 +93,14 @@ Dark only, in two dresses chosen by the hour. A still pond seen from above, draw
 |---|---|---|
 | ![Koi at night on desktop](docs/screenshots/koi-dark-desktop.png) | ![Koi by day on desktop](docs/screenshots/koi-day-dark-desktop.png) | <img src="docs/screenshots/koi-dark-mobile.png" alt="Koi on a phone" width="260"> |
 
+### `christmas`
+
+Dark only. A snowy village at night, in the style of abyssal: a mosaic of glowing characters (`*` for the snow, `#` for anything coloured or lit, `+` for the dark), read cell by cell from a picture made for this look (`tools/scenes/christmas/reference.png`) and laid in the two bands no panel covers. On the left, between the sidebar and the conversation, cottages under thick snow with warm amber windows, strings of fairy lights along the eaves and a snowman with a red scarf; on the right, between the conversation and the right panel, a kawaii snowplow with round headlight eyes, a smile, pink cheeks and a sunny yellow blade, under street lamps shaped like giant candy canes. The middle is night sky. Snow falls over everything in three layers at three speeds, smooth and endless; the fairy lights glow up and down slowly, each on its own beat, never all at once, and the windows breathe. Candy-cane red accent on deep navy. Respects *reduce motion*.
+
+| Desktop | Phone |
+|---|---|
+| ![Christmas on desktop](docs/screenshots/christmas-dark-desktop.png) | <img src="docs/screenshots/christmas-dark-mobile.png" alt="Christmas on a phone" width="260"> |
+
 ## Make a look
 
 Read [docs/DIRECTION.md](docs/DIRECTION.md) first: what a look here is made of, how slow it moves, and
