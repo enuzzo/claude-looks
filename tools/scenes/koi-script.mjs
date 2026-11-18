@@ -106,7 +106,7 @@ function rows(frame, cw, ch, cls = {}) {
 // body's shading, in a soft bloom. One pose per koi, cut into strips along the body; each strip sways
 // across the swim on its own phase, later toward the tail, so the stroke is a wave running from head to
 // tail, smooth and cheap (a flipbook of poses is drawn whole on every frame, shown or not).
-const KOI_STEP = [0.05, 0.065, 0.085] // body units between glyphs: the far koi are sampled more sparsely
+const KOI_STEP = [0.058, 0.075, 0.098] // body units between glyphs: the far koi are sampled more sparsely
 const KOI_SIZE = [6.6, 8.2, 10] // font size before each koi's own scale: the small ones stay legible
 const POSE = KOI.map(k => koi(k.hold / FRAMES, { radius: PHI, turn: -1, marks: MARKS, spots: SPOTS }))
 const sample = (i, step) => surface(POSE[i].sdf, { x: [-1.9, 1.2], z: [-1.3, 0.7], step, elev: 1.3, dist: 3, ramp: ' .,:;-=+*#%', tag: POSE[i].tag, tex: POSE[i].tex })
@@ -140,8 +140,23 @@ const css = []
 // a koi in place: turned to its starting angle, lapping counter-clockwise, at the foot of its circle
 function koiAt(k, i, anim, glyphs) {
   const r = RADII[i]
-  return `<g class="${k.id}" transform="translate(${f(k.c[0])} ${f(k.c[1])}) rotate(${-k.start})"><g${anim ? ` class="lap" style="animation-duration:${k.lap}s"` : ''}><g transform="translate(0 ${f(r)}) scale(${f(k.scale)})">${i === 0 ? `<circle r="${f(15 * FS)}" fill="url(#halo)"/>` : ''}<g class="book">${glyphs}</g></g></g></g>`
+  const body = `<g transform="scale(${f(k.scale)})">${i === 0 ? `<circle r="${f(15 * FS)}" fill="url(#halo)"/>` : ''}<g class="book">${glyphs}</g></g>`
+  const at = `translate(${f(k.c[0])} ${f(k.c[1])}) rotate(${-k.start})`
+  if (!anim) return `<g class="${k.id}" transform="${at}"><g transform="translate(0 ${f(r)})">${body}</g></g>`
+  // the place glides round the circle; only the heading turns in steps, half a degree about the fish's own
+  // middle, too small to see under the wave. Text turned smoothly is drawn afresh every frame and costs
+  // 1.5 ms more than this (koi 0.5.5 stuttered, its whole lap stepped about the circle's centre).
+  return `<g class="${k.id}" transform="${at}"><g style="animation:orbit${i} ${k.lap}s linear infinite"><g class="lap" style="animation-duration:${k.lap}s">${body}</g></g></g>`
 }
+// the orbit as a polygon of 72 sides: off the circle by r·(1 − cos 2.5°), under half a unit
+const ORBIT_CSS = KOI.map((k, i) => {
+  const r = RADII[i], n = 72
+  const stops = Array.from({ length: n + 1 }, (_, j) => {
+    const a = (2 * Math.PI * j) / n
+    return `${f((100 * j) / n)}%{transform:translate(${f(r * Math.sin(a))}px,${f(r * Math.cos(a))}px)}`
+  })
+  return `@keyframes orbit${i}{${stops.join('')}}`
+}).join('\n')
 // ── lily pads, in glyphs set in 3D like the koi: thin discs with a notch, veins running out from the
 // middle, deep green going to lime at the rim; on two of them a lotus in pink and magenta, the scene's
 // bright accent. They lie still, as pads do on a calm pond. One by the koi on the left, two far off on the right.
@@ -326,6 +341,7 @@ ${base}
 .book text{dominant-baseline:auto}
 ${css.join('\n')}
 .lap{animation:lap 144s steps(720) infinite}
+${ORBIT_CSS}
 .rg{opacity:0;fill:${L.ring}}
 .pt{fill:url(#pt)}.petal{opacity:0;animation:petal 233s steps(932) infinite 55s}
 ${L.caustics ? `.cs{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s steps(94) infinite}

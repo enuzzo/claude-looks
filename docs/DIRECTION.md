@@ -59,7 +59,13 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    - **Patterns for texture.** Glyphs in a `<pattern>` tile are drawn once and repeated: a hundred
      columns of block glyphs (abyssal's light) cost almost nothing, painted as a few paths grouped by
      brightness. Painted as one rect each, they cost 15 ms. Keep the tile small (a few hundred glyphs).
-   - **`steps()` on every animation**, the slower the better: smooth timing redraws every frame.
+   - **`steps()` on slow drifts and fades**, the slower the better: smooth timing redraws every frame.
+     But never on a creature's travel, which then visibly jumps (koi 0.5.5: the whole lap stepped about
+     the circle's centre, 5 to 13 jumps a second). Travel runs `linear`; it is the turning that costs.
+     Text turned smoothly is redrawn afresh every frame (koi: no lap 0.8 ms, stepped lap 2.2, smooth lap
+     3.7). So a creature that circles glides along a polygon of translate keyframes (72 sides is under
+     half a unit off the circle), and only its heading turns in `steps()` of half a degree about its own
+     middle, too small to see under the body's wave.
    - **One `<text>` per row**, never one per glyph; **flat fills** on moving type, not gradients; **no
      masks** on moving parts; **few moving elements**.
    - **Never flash.** No large, fast changes of brightness or of red: the app stops those too.
