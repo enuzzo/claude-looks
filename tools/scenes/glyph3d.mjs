@@ -6,11 +6,12 @@ import { clamp, len3 } from './ascii3d.mjs'
 
 /**
  * Sample the top surface of `sdf` on a lattice in its own (x, z) plane and project what the camera sees.
- * opts: { x: [x0, x1], z: [z0, z1], step, elev (rad), yaw (rad), dist, focal, light, ramp }
- * Returns points { sx, sy, depth, v (light 0..1), u (−1..1 across z), x, z, ch }.
+ * opts: { x: [x0, x1], z: [z0, z1], step, elev (rad), yaw (rad), dist, focal, light, ramp,
+ *   tag(x, y, z) → a label kept on the point (e.g. which part of a coat), tex(x, y, z) → a light multiplier }
+ * Returns points { sx, sy, depth, v (light 0..1), u (−1..1 across z), x, y, z, tag, ch }.
  */
 export function surface(sdf, opts) {
-  const { x: [x0, x1], z: [z0, z1], step, elev = 1.1, yaw = 0, dist = 3.6, focal = 1, light = [0.3, 1, 0.5], ramp = ' .:-=+!*#%' } = opts
+  const { x: [x0, x1], z: [z0, z1], step, elev = 1.1, yaw = 0, dist = 3.6, focal = 1, light = [0.3, 1, 0.5], ramp = ' .:-=+!*#%', tag, tex } = opts
   const ce = Math.cos(elev), se = Math.sin(elev), cy = Math.cos(yaw), sy = Math.sin(yaw)
   const d = [0, -se, -ce], up = [0, ce, -se] // view direction and screen up, as in ascii3d.mjs
   const ll = len3(...light), L = light.map(v => v / ll)
@@ -52,8 +53,8 @@ export function surface(sdf, opts) {
       const diff = Math.max(0, wnx * L[0] + ny * L[1] + wnz * L[2])
       const facing = Math.abs(wnx * d[0] + ny * d[1] + wnz * d[2])
       const rim = (1 - facing) ** 2
-      const v = clamp(0.18 + 0.62 * diff + 0.35 * rim, 0, 1)
-      out.push({ sx, sy: -syy, depth, k, v, u: z / span, x, z })
+      const v = clamp((0.18 + 0.62 * diff + 0.35 * rim) * (tex ? tex(x, y, z) : 1), 0, 1)
+      out.push({ sx, sy: -syy, depth, k, v, u: z / span, x, y, z, tag: tag ? tag(x, y, z) : undefined })
     }
   }
   // the glyph from the light, stretched over this frame's own range so the whole ramp is used

@@ -15,7 +15,8 @@ ASCII pines). The middle, where the conversation sits, stays clear.
 ## Rules
 
 1. **Code is the material.** Glyphs, block mosaics, halftone dots, dot matrices, type set on a grid,
-   and solids raymarched into ASCII at build time (`tools/scenes/ascii3d.mjs`). No photographs, no
+   and solids drawn in glyphs set in 3D at build time (`tools/scenes/glyph3d.mjs`, see "The house
+   style" below; the older grid raymarcher is `tools/scenes/ascii3d.mjs`). No photographs, no
    painted or generated images, no cartoon vector drawings (outlined shapes filled with flat colour).
    Gradients are for light and atmosphere only: a sky, a glow, a haze.
 2. **One subject, in the open field.** Each look has one subject, plus at most one or two quiet
@@ -23,8 +24,10 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    the app covers, never under the sidebar or the right panel, never across the conversation or the
    prompt box.
 3. **Slow.** Ambient cycles last 20 s or more; a crossing takes minutes; a subject's own motion (a wing,
-   a flame, a wave) takes 8 to 20 s per cycle. Frames switch like the pages of a flipbook, a
-   few seconds apart (rule 9 says why they do not fade). If you notice it move from the corner of your eye while reading, it is too fast.
+   a flame, a wave) takes 8 to 20 s per cycle, as a smooth wave through the body (the house style,
+   below), not as pages of poses. If you notice it move from the corner of your eye while reading, it is
+   too fast. A creature only moves the way its body points: it never swims backwards; to leave, it goes
+   on ahead and away, smaller and fainter, and comes back the same way.
 4. **Rare events, never in sync.** A surprise (a visitor, a falling star, a light passing) comes on a
    long cycle, minutes apart, with durations that share no factor (co-prime: 151 s, 487 s, 613 s), so
    the scene never visibly loops.
@@ -43,9 +46,19 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    "runs 3 seconds, then snaps to its first frame"). `node tools/qa/scenes.mjs` times it the same way:
    aim under 2.5 ms, and `tools/release.sh` refuses anything over 4.5. What makes a frame cheap, measured
    (2026-11-17, on this bench):
-   - **Switch, don't fade.** A flipbook of frames shown one at a time with `visibility` (or a strip of
-     frames moved by `translate`), timed with `steps()`, costs a sixth of the same frames cross-faded
-     with `opacity`: a group at `opacity:0` under a running fade is still drawn every frame.
+   - **One pose, not a flipbook.** Every page of a flipbook is drawn on every frame, shown or not
+     (abyssal's manta: one pose 2.6 ms, four 3.5, ten 5.6). Draw a creature once and move parts of it
+     (the house style, below). Where pages are unavoidable, switch them with `visibility` and `steps()`:
+     a cross-fade with `opacity` costs six times as much.
+   - **Count the glyphs.** The app redraws the whole scene on every frame, so every glyph costs, still
+     or moving: about 0.6 ms per thousand on this bench. Five lily pads of small glyphs cost more than
+     three koi; drawn in a few large block glyphs (`░▒▓█`) they cost a third. Keep a scene under about
+     3,500 glyphs, patterns included.
+   - **No filter inside a moving group.** A bloom (`feGaussianBlur`) is cheap on a group that holds its
+     movers, recomputed whole when it sits inside one that moves.
+   - **Patterns for texture.** Glyphs in a `<pattern>` tile are drawn once and repeated: a hundred
+     columns of block glyphs (abyssal's light) cost almost nothing, painted as a few paths grouped by
+     brightness. Painted as one rect each, they cost 15 ms. Keep the tile small (a few hundred glyphs).
    - **`steps()` on every animation**, the slower the better: smooth timing redraws every frame.
    - **One `<text>` per row**, never one per glyph; **flat fills** on moving type, not gradients; **no
      masks** on moving parts; **few moving elements**.
@@ -58,6 +71,27 @@ ASCII pines). The middle, where the conversation sits, stays clear.
    backslash, no `<image>` or `<foreignObject>`, listed CSS functions and at-rules only. The still copy
    it falls back on has every animation removed, so the base state must be the finished picture: nothing
    at `opacity:0` waiting for a keyframe to fade it in.
+
+## The house style: glyphs set in 3D
+
+How the reworked looks draw a creature (abyssal's manta and jellies, the koi), and how every look should
+from now on. It came from studying Effulgence, an ASCII RPG whose world is text in 3D space.
+
+- **Glyphs on the body, not on a grid.** `surface()` in `tools/scenes/glyph3d.mjs` samples the body's
+  own surface (a signed distance field) on a lattice in its own coordinates, so the rows of glyphs
+  follow the body and bend with it, and projects them in perspective: near glyphs larger and brighter,
+  far ones smaller and dimmer. `glyphSvg()` writes them as a few `<text>` lists grouped by size and
+  colour.
+- **Colour along the body, from its own parts.** Each glyph takes its colour from where it lies (a
+  span from wingtip to wingtip, a coat's red patch or ink mark, a fin) times its light; a glyph from a
+  ramp chosen by that light, stretched over the pose's own range.
+- **Bloom.** One `feGaussianBlur` merged under the glyphs, on the group that holds the moving parts.
+- **Motion as a wave through one pose.** Draw one pose, cut it into strips across the direction of
+  motion (along a wing's span, along a fish's body), and move each strip with its own
+  `translateY`, `ease-in-out`, phased a little later toward the tip or tail. It reads as a wingbeat or
+  a stroke running through the body, smooth, and costs one pose (abyssal's manta: the gold standard).
+- **Accents.** A deep, dark ground and one or two vivid colours that answer the subject (magenta
+  jellies and algae by a teal manta; a lotus on lime pads by white and vermilion koi).
 
 ## Layout: the app's grid
 
@@ -149,7 +183,7 @@ until they meet this standard.
 | `abyssal` | **done** (2026-11-17, Effulgence rework) | a manta of glyphs set in 3D (tools/scenes/glyph3d.mjs), glowing, in a shaft of light made of block glyphs, low on the left; 3D-glyph moon jellies with coloured tentacles on the right; lime and magenta algae |
 | `synthwave` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the open field on the left, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
 | `tide` | **done** (2026-11-16) | a moon ray-cast into glyphs high in the open field on the left; a perspective sea of type with its light on the water; rare falling stars |
-| `koi` | **done** (2026-11-16) | three raymarched ASCII koi in three coats, sized and placed by the golden ratio, circling low in the open field on the left; rings of dots in the near one's wake; a rare petal; night water, and jade water with caustics by day |
+| `koi` | **done** (2026-11-17, Effulgence rework) | three koi of glyphs set in 3D in their coats, glowing, a stroke-wave head to tail, on a golden spiral low on the left; lily pads of block glyphs with pink lotus; rings, a rare petal; jade water with caustics by day |
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
 | `rain` | **done** (2026-11-16) | a slow curtain of glyph rain hanging from the sidebar's edge, three depths; a rare lone column in the empty field |

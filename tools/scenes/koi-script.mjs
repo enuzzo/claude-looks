@@ -21,7 +21,8 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { render } from './ascii3d.mjs'
-import { koi, PHI, RED, SUMI } from './koi.mjs'
+import { koi, PHI, RED, SUMI, FIN } from './koi.mjs'
+import { glyphSvg, surface } from './glyph3d.mjs'
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url))
 
@@ -99,40 +100,94 @@ function rows(frame, cw, ch, cls = {}) {
   return s
 }
 
-// ── the koi's flipbook, drawn once and worn by all three: each frame is a <g> in <defs>, and a koi is a
-// stack of <use>, one per frame, each shown for 1/n of its cycle. Every animation here is stepped and
-// every flipbook switched, never cross-faded: the desktop app stops a scene that costs too much to draw
-// (docs/DIRECTION.md rule 9). Eight frames: sixteen cost more, as every switch is a redraw.
-const [CW, CH] = cell(FS)
-const VIEW = { cols: 96, rows: 84, dx: DX, aspect: CH / CW, elev: Math.PI / 2, ramp: RAMP, outline: false, light: [0.12, 1, 0.1] }
-const TAGS = { [RED]: 'r', [SUMI]: 's' }
-const BOOK = (() => {
-  const raw = Array.from({ length: FRAMES }, (_, i) => {
-    const K = koi(i / FRAMES, { radius: PHI, turn: -1, marks: MARKS, spots: SPOTS })
-    return render(K.sdf, { ...VIEW, tag: K.tag }, K.tex)
-  })
-  const { frames, r0, c0 } = trimAll(raw)
-  return {
-    frames: frames.map((fr, i) => `<g id="f${i}">${rows(fr, CW, CH, TAGS)}</g>`),
-    // the koi's middle (the world origin, on its circle) sits at the sprite's origin
-    tf: `translate(${f(-(VIEW.cols / 2 - c0) * CW)} ${f(-(VIEW.rows / 2 - r0) * CH)})`,
-  }
-})()
-// a flipbook of n frames: each is shown for 1/n of the cycle, switched with visibility, never faded (a
-// crossfade draws every frame of the stack on every frame of the scene: six times the cost, measured)
-const fb = n => `@keyframes fb${n}{0%{visibility:visible}${f(100 / n)}%,100%{visibility:hidden}}\n`
-const FB = [...new Set(KOI.map(k => k.frames ?? FRAMES))].filter(n => n > 1).map(fb).join('')
-// a koi in place: turned to its starting angle, lapping counter-clockwise, at the foot of its circle
-function koiAt(k, i, anim) {
-  const r = RADII[i]
-  // the middle one takes every other frame of the book; the far one, small and dim, only glides
-  // (one frame, still lapping): the desktop app stops a scene that animates too much type
-  const n = k.frames ?? FRAMES, step = FRAMES / n, hold = Math.round(k.hold / step)
-  const stack = anim && n > 1
-    ? Array.from({ length: n }, (_, j) => `<use href="#f${j * step}" class="fr${j === hold ? ' f0' : ''}" style="animation:fb${n} ${k.beat}s steps(1) infinite ${f((j / n) * k.beat - k.beat)}s"/>`).join('')
-    : `<use href="#f${k.hold}"/>`
-  return `<g class="${k.id}" transform="translate(${f(k.c[0])} ${f(k.c[1])}) rotate(${-k.start})"><g${anim ? ` class="lap" style="animation-duration:${k.lap}s"` : ''}><g transform="translate(0 ${f(r)}) scale(${f(k.scale)})">${i === 0 ? `<circle r="${f(15 * FS)}" fill="url(#halo)"/>` : ''}<g class="book" transform="${BOOK.tf}">${stack}</g></g></g></g>`
+// ── the koi, drawn the way ASCII games like Effulgence draw their creatures (tools/scenes/glyph3d.mjs):
+// glyphs set on the body's own surface, seen from a little off straight down so the body has volume,
+// each glyph coloured by the part of the coat it lies on (white, red patch, ink mark, fin) and lit by the
+// body's shading, in a soft bloom. One pose per koi, cut into strips along the body; each strip sways
+// across the swim on its own phase, later toward the tail, so the stroke is a wave running from head to
+// tail, smooth and cheap (a flipbook of poses is drawn whole on every frame, shown or not).
+const KOI_STEP = [0.05, 0.065, 0.085] // body units between glyphs: the far koi are sampled more sparsely
+const KOI_SIZE = [6.6, 8.2, 10] // font size before each koi's own scale: the small ones stay legible
+const POSE = KOI.map(k => koi(k.hold / FRAMES, { radius: PHI, turn: -1, marks: MARKS, spots: SPOTS }))
+const sample = (i, step) => surface(POSE[i].sdf, { x: [-1.9, 1.2], z: [-1.3, 0.7], step, elev: 1.3, dist: 3, ramp: ' .,:;-=+*#%', tag: POSE[i].tag, tex: POSE[i].tex })
+const PTS = KOI.map((k, i) => sample(i, KOI_STEP[i]))
+const PTS_POSTER = KOI.map((k, i) => sample(i, KOI_STEP[i] * 2))
+const hex = c => '#' + c.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('')
+const coatColour = c => p => {
+  const lv = (Math.round((0.4 + 0.75 * p.v) * 4) / 4) * (c.dim ?? 1)
+  const base = p.tag === RED ? c.red : p.tag === SUMI ? c.ink : p.tag === FIN ? c.fin : c.white
+  return [hex(base.map(x => x * lv)), p.tag === FIN ? 0.6 : 1]
 }
+const STRIPS = 12, NOSE_X = 1.2, TAIL_X = -1.9
+function koiGlyphs(i, coat, anim, pts = PTS[i]) {
+  const k = KOI[i], opts = { scale: UNIT, size: KOI_SIZE[i], sizes: 3, colour: coatColour(coat) }
+  if (!anim) return glyphSvg(pts, opts)
+  const beat = f(k.beat / 2.4)
+  let out = ''
+  for (let j = 0; j < STRIPS; j++) {
+    const xa = NOSE_X - ((NOSE_X - TAIL_X) * j) / STRIPS, xb = NOSE_X - ((NOSE_X - TAIL_X) * (j + 1)) / STRIPS
+    const strip = pts.filter(p => p.x <= xa && (p.x > xb || j === STRIPS - 1))
+    if (!strip.length) continue
+    const u = (j + 0.5) / STRIPS // 0 at the nose, 1 at the tail
+    const amp = f(0.11 * UNIT * u * u)
+    const name = `sw${i}_${j}`
+    css.push(`@keyframes ${name}{0%,100%{transform:translateY(${-amp}px)}50%{transform:translateY(${amp}px)}}`)
+    out += `<g style="animation:${name} ${beat}s ease-in-out infinite ${f(-(u * 0.45 + 1) * beat)}s">${glyphSvg(strip, opts)}</g>`
+  }
+  return out
+}
+const css = []
+// a koi in place: turned to its starting angle, lapping counter-clockwise, at the foot of its circle
+function koiAt(k, i, anim, glyphs) {
+  const r = RADII[i]
+  return `<g class="${k.id}" transform="translate(${f(k.c[0])} ${f(k.c[1])}) rotate(${-k.start})"><g${anim ? ` class="lap" style="animation-duration:${k.lap}s"` : ''}><g transform="translate(0 ${f(r)}) scale(${f(k.scale)})">${i === 0 ? `<circle r="${f(15 * FS)}" fill="url(#halo)"/>` : ''}<g class="book">${glyphs}</g></g></g></g>`
+}
+// ── lily pads, in glyphs set in 3D like the koi: thin discs with a notch, veins running out from the
+// middle, deep green going to lime at the rim; on two of them a lotus in pink and magenta, the scene's
+// bright accent. They lie still, as pads do on a calm pond. One by the koi on the left, two far off on the right.
+const PADS = [
+  // x, y, radius (viewBox), notch angle (deg), lotus?, rock period (s)
+  [236, 548, 70, 30, true, 23], [1336, 652, 48, 300, false, 19], [1470, 872, 76, 70, true, 37],
+]
+// A pad is a shape, an ellipse foreshortened by the view with its notch cut out, filled with a small
+// tile of dithered block glyphs (drawn once, repeated: a leaf of a few hundred glyphs for the cost of a
+// handful); a second, smaller shape in a lighter tile lights its middle.
+const padTile = (id, fill) => {
+  let t = ''
+  for (let r = 0; r < 8; r++) {
+    let row = ''
+    for (let c = 0; c < 10; c++) { const v = R(); row += v < 0.45 ? '▓' : v < 0.8 ? '▒' : '░' }
+    t += `<text x="0" y="${f(r * 9)}" style="fill:${fill}">${row}</text>` // its own fill: `pattern text` styles the specks
+  }
+  return `<pattern id="${id}" width="${f(10 * 0.602 * 9)}" height="72" patternUnits="userSpaceOnUse"><g style="font-size:10px;fill:${fill};dominant-baseline:hanging">${t}</g></pattern>` // 10px glyphs on 9-unit rows overlap: no seam
+}
+const PAD_TILES = night => padTile('padD', night ? '#2a6b34' : '#337d3c') + padTile('padL', night ? '#6ac24c' : '#82d85a')
+function padShape(rad, notch, k) {
+  const rx = rad * k, ry = rad * 0.78 * k, a = (notch * Math.PI) / 180, w = 0.2
+  const p = t => `${f(Math.cos(t) * rx)} ${f(Math.sin(t) * ry)}`
+  return `M0 0L${p(a + w)}A${f(rx)} ${f(ry)} 0 1 1 ${p(a - w)}Z`
+}
+function padGlyphs([, , rad, notch]) {
+  return `<path d="${padShape(rad, notch, 1)}" fill="url(#padD)"/><path d="${padShape(rad, notch, 0.62)}" fill="url(#padL)" opacity=".7"/>`
+}
+function lotus(rad) {
+  // two rings of petals and a pale heart, a little above the pad
+  let out = ''
+  const ring = (n, rr, ch, col, fs, off = 0) => {
+    const xs = [], ys = []
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + off; xs.push(f(Math.cos(a) * rr - 0.3 * fs)); ys.push(f(Math.sin(a) * rr * 0.62 + 0.35 * fs - rad * 0.12)) }
+    out += `<text font-size="${fs}" fill="${col}" x="${xs.join(' ')}" y="${ys.join(' ')}">${ch.repeat(n)}</text>`
+  }
+  ring(12, rad * 0.42, 'o', '#ff4cc0', 13)
+  ring(10, rad * 0.3, '%', '#ff8ee0', 12, 0.3)
+  ring(7, rad * 0.17, '*', '#ffb3e6', 11, 0.1)
+  out += `<text font-size="12" fill="#ffe9a8" x="${f(-3.6)}" y="${f(4.2 - rad * 0.12)}">@</text>`
+  return out // no bloom here: a filter inside a moving group is recomputed on every frame
+}
+// the pads, then the flowers: bright on their own, without a bloom (a filter costs even on still type)
+const padsSvg = night => PADS.map(([x, y, rad, notch]) => `<g transform="translate(${x} ${y})">${padGlyphs([x, y, rad, notch], night)}</g>`).join('') +
+  PADS.filter(p => p[4]).map(([x, y, rad]) => `<g transform="translate(${x} ${y})">${lotus(rad)}</g>`).join('')
+
 // where a koi's middle is t seconds in
 const where = (i, t) => {
   const k = KOI[i], a = ((k.start + (360 * t) / k.lap) * Math.PI) / 180
@@ -227,6 +282,11 @@ const LOOKS = {
     glowA: ['#17606a', 0.34, '#0f4654', 0.12], // the lit water around the koi
     glowB: ['#2c2f7a', 0.26, '#1f2260', 0.09], // moonlight far across the pond
     halo: ['#ffc2a6', 0.1],
+    coats: [
+      { white: [255, 244, 228], red: [255, 118, 76], ink: [255, 244, 228], fin: [150, 205, 218] }, // kohaku
+      { white: [226, 240, 240], red: [255, 126, 88], ink: [44, 56, 104], fin: [140, 190, 210], dim: 0.8 }, // sanke
+      { white: [255, 198, 88], red: [255, 198, 88], ink: [255, 198, 88], fin: [210, 190, 130], dim: 0.6 }, // ogon
+    ],
     k1: { white: ['#f6eede', '#d6d8d0', '#a3b7ba'], red: '#e45b3d', opacity: 1 },
     k2: { white: '#b4c9ca', red: '#c0553f', ink: '#32405c', opacity: 0.7 },
     k3: { white: '#b3a47c', opacity: 0.5 },
@@ -239,6 +299,11 @@ const LOOKS = {
     glowA: ['#3f8a6c', 0.3, '#2a6a58', 0.1], // sunlit water around the koi
     glowB: ['#6f8f5a', 0.16, '#4c7050', 0.06], // light through leaves, far across the pond
     halo: ['#fff0d0', 0.06],
+    coats: [
+      { white: [255, 247, 232], red: [255, 120, 80], ink: [255, 247, 232], fin: [190, 228, 205] },
+      { white: [232, 244, 236], red: [255, 128, 90], ink: [40, 64, 60], fin: [170, 215, 195], dim: 0.82 },
+      { white: [255, 206, 96], red: [255, 206, 96], ink: [255, 206, 96], fin: [215, 205, 140], dim: 0.62 },
+    ],
     k1: { white: ['#fbf4e4', '#e6e4d6', '#bccabf'], red: '#ea6040', opacity: 1 },
     k2: { white: '#c3d5c8', red: '#c95e43', ink: '#2f4640', opacity: 0.74 },
     k3: { white: '#c2b684', opacity: 0.55 },
@@ -258,7 +323,8 @@ svg{font-size:${f(FS)}px}.r{fill:var(--r)}.s{fill:var(--s)}
 .k1{fill:url(#kw);--r:${L.k1.red};--s:url(#kw)}.k2{fill:${L.k2.white};--r:${L.k2.red};--s:${L.k2.ink};opacity:${L.k2.opacity}}.k3{fill:${L.k3.white};--r:${L.k3.white};--s:${L.k3.white};opacity:${L.k3.opacity}}`
   const style = `<style>
 ${base}
-.fr{visibility:hidden}.fr.f0{visibility:visible}
+.book text{dominant-baseline:auto}
+${css.join('\n')}
 .lap{animation:lap 144s steps(720) infinite}
 .rg{opacity:0;fill:${L.ring}}
 .pt{fill:url(#pt)}.petal{opacity:0;animation:petal 233s steps(932) infinite 55s}
@@ -266,7 +332,8 @@ ${L.caustics ? `.cs{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s steps(94)
 @keyframes cA{0%,100%{opacity:.3;transform:translate(0,0)}50%{opacity:.12;transform:translate(-13px,8px)}}
 ` : ''}pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s steps(311) infinite}
 .glowA{--x:-50px;--y:-34px;animation:breathe 61s steps(61) infinite}.glowB{--x:80px;--y:60px;animation:breathe 97s steps(97) infinite -30s}
-${FB}${[...ringCycles].map(ringKf).join('')}@keyframes lap{to{transform:rotate(-360deg)}}
+${[...ringCycles].map(ringKf).join('')}@keyframes lap{to{transform:rotate(-360deg)}}
+.pads text{dominant-baseline:auto}
 @keyframes breathe{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(var(--x),var(--y)) scale(1.12)}}
 @keyframes slide{to{transform:translate(-420px,420px)}}
 @keyframes petal{0%{opacity:0;transform:translate(13px,-21px) rotate(-55deg) scale(2.2)}2.15%{opacity:.95;transform:translate(0,0) rotate(0deg) scale(1)}25.7%{opacity:.8;transform:translate(-34px,21px) rotate(34deg) scale(1)}28.3%,100%{opacity:0;transform:translate(-37px,23px) rotate(38deg) scale(.92)}}
@@ -279,7 +346,7 @@ ${grad('glowA', L.glowA)}${grad('glowB', L.glowB)}
 <linearGradient id="kw" gradientUnits="userSpaceOnUse" x1="${f(33 * FS)}" y1="0" x2="0" y2="0"><stop offset="0" stop-color="${L.k1.white[0]}"/><stop offset=".6" stop-color="${L.k1.white[1]}"/><stop offset="1" stop-color="${L.k1.white[2]}"/></linearGradient>`
   const ground = `<rect width="${W}" height="${H}" fill="url(#water)"/>`
   const glows = anim => `<g${anim ? ' class="glowB"' : ''}><circle cx="1300" cy="240" r="640" fill="url(#glowB)"/></g><g${anim ? ' class="glowA"' : ''}><circle cx="${f(EYE[0] + KX)}" cy="${f(EYE[1])}" r="480" fill="url(#glowA)"/></g>`
-  const fish = anim => [2, 1, 0].map(i => koiAt(KOI[i], i, anim)).join('\n')
+  const fish = anim => [2, 1, 0].map(i => koiAt(KOI[i], i, anim, koiGlyphs(i, L.coats[i], anim, anim ? PTS[i] : PTS_POSTER[i]))).join('\n')
 
   // Anchored bottom-left: the spiral is laid out in the frame's bottom-right corner, then the whole of it
   // (koi, rings, petal, caustics) is moved by KX into the open field beside the sidebar (docs/DIRECTION.md,
@@ -289,14 +356,16 @@ ${style}
 <defs>
 ${shared}
 <linearGradient id="pt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${L.petal[0]}"/><stop offset="1" stop-color="${L.petal[1]}"/></linearGradient>
-${SPECKS}${L.caustics ? CAUSTICS : ''}${BOOK.frames.join('')}${PETAL}${RINGS}
+${SPECKS}${L.caustics ? CAUSTICS : ''}${PETAL}${RINGS}${PAD_TILES(name === 'night')}
+<filter id="bloom" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 ${ground}
 ${glows(true)}
+${L.caustics ? `<g transform="translate(${KX} 0)"><g class="cA"><use href="#caustics"/></g></g>` : ''}
+<g class="pads">${padsSvg(name === 'night')}</g>
 <g class="specks"><rect y="-420" width="${W + 420}" height="${H + 420}" fill="url(#specks)"/></g>
-<g transform="translate(${KX} 0)">
-${L.caustics ? '<g class="cA"><use href="#caustics"/></g>' : ''}
-${fish(true)}
+<g transform="translate(${f(EYE[0] + KX)} ${f(EYE[1])}) scale(1.2) translate(${f(-EYE[0])} ${f(-EYE[1])})">
+<g filter="url(#bloom)">${fish(true)}</g>
 ${ripples}
 <g transform="translate(${f(EYE[0])} ${f(EYE[1])})">${petalRings}<g class="petal"><use href="#petal"/></g></g>
 </g>
@@ -304,7 +373,7 @@ ${ripples}
 
   const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice" width="320" height="180">
 <style>${base}</style>
-<defs>${shared}${KOI.map(k => BOOK.frames[k.hold]).join('')}</defs>${ground}${glows(false)}<g transform="translate(${KX} 0)">${fish(false)}</g>
+<defs>${shared}</defs>${ground}${glows(false)}<g transform="translate(${f(EYE[0] + KX)} ${f(EYE[1])}) scale(1.2) translate(${f(-EYE[0])} ${f(-EYE[1])})">${fish(false)}</g>
 </svg>`.replace(/\n/g, '')
   return { svg, poster }
 }
@@ -313,7 +382,7 @@ ${ripples}
 const written = ({ svg, poster }) => ({ svg: inlineUses(svg), poster: inlineUses(poster) })
 const night = written(scene('night')), day = written(scene('day'))
 console.log(`koi: night ${night.svg.length} characters, day ${day.svg.length}, poster ${night.poster.length}`)
-if (process.env.SIZES) console.log({ frames: BOOK.frames.join('').length, rings: RINGS.length, caustics: CAUSTICS.length, FS, G, RADII, C1, C2, C3, EYE })
+if (process.env.SIZES) console.log({ rings: RINGS.length, caustics: CAUSTICS.length, FS, G, RADII, C1, C2, C3, EYE })
 if (night.poster.length >= 12000) throw new Error('poster over 12,000 characters')
 for (const v of [night.svg, day.svg]) if (v.length >= 131072) throw new Error(`scene is ${v.length} characters, over 131,072`)
 writeFileSync(join(ROOT, 'hooks/looks/koi/scene.js'),

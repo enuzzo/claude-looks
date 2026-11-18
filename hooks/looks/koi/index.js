@@ -7,7 +7,7 @@ const { SCENE, SCENE_DAY } = SCENE_MODULE
 export default {
   id: 'koi',
   label: 'Koi',
-  description: 'A still pond from above, in glyphs: three raymarched ASCII koi (a kohaku, a sanke, a pale ogon) circling on a golden spiral, rings of dots in the near one’s wake, a rare petal. Night water after dusk, jade water by day.',
+  description: 'A still pond from above: three koi of glowing glyphs set in 3D (a kohaku, a sanke, a gold ogon) circling on a golden spiral, lily pads with pink lotus. Night water after dusk, jade water by day.',
   problems: [...problems, ...dayProblems],
   args: {
     colors: theme,
