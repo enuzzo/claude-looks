@@ -1,10 +1,10 @@
 // koi scene generator. Run: node tools/scenes/koi-script.mjs
-// A still pond seen from above, in glyphs. Three koi circle in the bottom-right corner, each on its own
+// A still pond seen from above, in glyphs. Two koi circle low by the sidebar, each on its own
 // depth: the near one large, bright and slow, the far ones smaller, dimmer and closer to the water.
 // The koi is a real solid (a signed distance field in koi.mjs), raymarched here at build time into ASCII,
 // one frame per step of a stroke-and-glide cycle, shown in turn like a flipbook, and the lap is a
 // slow turn of the whole sprite, whose spine is already bent to the circle it swims. The three wear the
-// same flipbook in different coats: a kohaku, a sanke and a pale ogon. In the near koi's wake a few rings
+// same pose in different coats: a kohaku and a sanke (a third, an ogon, is left out; see SWIMMING). In the near koi's wake a few rings
 // of dots open; minutes apart a petal comes down at the heart of it all.
 //
 // Everything is laid out on the golden ratio. The frame's own golden spiral converges on its eye, at
@@ -118,6 +118,10 @@ const coatColour = c => p => {
   const base = p.tag === RED ? c.red : p.tag === SUMI ? c.ink : p.tag === FIN ? c.fin : c.white
   return [hex(base.map(x => x * lv)), p.tag === FIN ? 0.6 : 1]
 }
+// the koi drawn, far first. The third, on the spiral's smallest circle, is left out: that small and that
+// curled, it came out a gold crescent with no head or fins (0.5.6), more leaf than fish. Its circle
+// still sets where the spiral's eye is.
+const SWIMMING = [1, 0]
 const STRIPS = 12, NOSE_X = 1.2, TAIL_X = -1.9
 function koiGlyphs(i, coat, anim, pts = PTS[i]) {
   const k = KOI[i], opts = { scale: UNIT, size: KOI_SIZE[i], sizes: 3, colour: coatColour(coat) }
@@ -149,7 +153,8 @@ function koiAt(k, i, anim, glyphs) {
   return `<g class="${k.id}" transform="${at}"><g style="animation:orbit${i} ${k.lap}s linear infinite"><g class="lap" style="animation-duration:${k.lap}s">${body}</g></g></g>`
 }
 // the orbit as a polygon of 72 sides: off the circle by r·(1 − cos 2.5°), under half a unit
-const ORBIT_CSS = KOI.map((k, i) => {
+const ORBIT_CSS = SWIMMING.map(i => {
+  const k = KOI[i]
   const r = RADII[i], n = 72
   const stops = Array.from({ length: n + 1 }, (_, j) => {
     const a = (2 * Math.PI * j) / n
@@ -290,7 +295,7 @@ const CAUSTICS = (() => {
 
 // ── the two ponds. A coat is the colour of the white (a gradient from head to tail on the near koi), of
 // the red marks, of the ink marks, and how much of the koi shows at its depth: the near koi is a kohaku
-// (its ink stays white), the middle one a sanke, the far one an ogon, one pale metal all over.
+// (its ink stays white), the middle one a sanke. The far ogon's coat stays for its circle, but it is not drawn.
 const LOOKS = {
   night: {
     water: ['#08161f', '#060f19', '#050b14'],
@@ -362,7 +367,7 @@ ${grad('glowA', L.glowA)}${grad('glowB', L.glowB)}
 <linearGradient id="kw" gradientUnits="userSpaceOnUse" x1="${f(33 * FS)}" y1="0" x2="0" y2="0"><stop offset="0" stop-color="${L.k1.white[0]}"/><stop offset=".6" stop-color="${L.k1.white[1]}"/><stop offset="1" stop-color="${L.k1.white[2]}"/></linearGradient>`
   const ground = `<rect width="${W}" height="${H}" fill="url(#water)"/>`
   const glows = anim => `<g${anim ? ' class="glowB"' : ''}><circle cx="1300" cy="240" r="640" fill="url(#glowB)"/></g><g${anim ? ' class="glowA"' : ''}><circle cx="${f(EYE[0] + KX)}" cy="${f(EYE[1])}" r="480" fill="url(#glowA)"/></g>`
-  const fish = anim => [2, 1, 0].map(i => koiAt(KOI[i], i, anim, koiGlyphs(i, L.coats[i], anim, anim ? PTS[i] : PTS_POSTER[i]))).join('\n')
+  const fish = anim => SWIMMING.map(i => koiAt(KOI[i], i, anim, koiGlyphs(i, L.coats[i], anim, anim ? PTS[i] : PTS_POSTER[i]))).join('\n')
 
   // Anchored bottom-left: the spiral is laid out in the frame's bottom-right corner, then the whole of it
   // (koi, rings, petal, caustics) is moved by KX into the open field beside the sidebar (docs/DIRECTION.md,
