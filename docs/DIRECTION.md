@@ -189,7 +189,7 @@ until they meet this standard.
 | `abyssal` | **done** (2026-11-17, Effulgence rework) | a manta of glyphs set in 3D (tools/scenes/glyph3d.mjs), glowing, in a shaft of light made of block glyphs, low on the left; 3D-glyph moon jellies with coloured tentacles on the right; lime and magenta algae |
 | `synthwave` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the open field on the left, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
 | `tide` | **done** (2026-11-16) | a moon ray-cast into glyphs high in the open field on the left; a perspective sea of type with its light on the water; rare falling stars |
-| `koi` | **done** (2026-11-17, Effulgence rework) | two koi of glyphs set in 3D in their coats (the third, too small to show a head, left out), glowing, a stroke-wave head to tail, on a golden spiral low on the left; lily pads of block glyphs with pink lotus; rings, a rare petal; jade water with caustics by day |
+| `koi` | **done** (2026-11-18, top right) | two koi of glyphs set in 3D (kohaku, sanke) with fins and forked tails, gliding straight runs like the manta (rise, glide, sink, never a turn) in the band at the top right beside the conversation (the owner's placement: low on the left they passed under fresh text; the right panel covers them while open); lily pads of block mosaic, lotus open by day and closed at night; block-glyph light; rings, a rare petal; jade water with caustics by day |
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
 | `rain` | **done** (2026-11-16) | a slow curtain of glyph rain hanging from the sidebar's edge, three depths; a rare lone column in the empty field |

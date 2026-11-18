@@ -7,7 +7,7 @@ const { SCENE, SCENE_DAY } = SCENE_MODULE
 export default {
   id: 'koi',
   label: 'Koi',
-  description: 'A still pond from above: two koi of glowing glyphs set in 3D (a kohaku and a sanke) circling on a golden spiral, lily pads with pink lotus. Night water after dusk, jade water by day.',
+  description: 'A still pond from above: two koi of glyphs set in 3D (a kohaku and a sanke) gliding in the top right under block-mosaic lily pads, their lotus open by day. Night water after dusk, jade water by day.',
   problems: [...problems, ...dayProblems],
   args: {
     colors: theme,
@@ -16,7 +16,7 @@ export default {
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'A dark ink-teal pond at night seen from above: two koi made of ASCII characters circle slowly low on the left, a large bright one in bone white with vermilion patches and a smaller, deeper one with ink marks as well; faint rings of dots open on the water',
+    alt: 'A dark ink-teal pond at night seen from above: two koi made of ASCII characters glide slowly in the top right under lily pads of green blocks, a large bright one in bone white with vermilion patches and a smaller, deeper one with ink marks as well; faint rings of dots open on the water',
   },
   day: {
     hours: [7, 19],
@@ -26,7 +26,7 @@ export default {
     },
     scene: {
       source: SCENE_DAY,
-      alt: 'A muted jade pond by day seen from above: two koi made of ASCII characters, one bone white with vermilion patches, one with ink marks as well, circle slowly low on the left over thin, faint lines of light on the pond floor',
+      alt: 'A muted jade pond by day seen from above: two koi made of ASCII characters, one bone white with vermilion patches, one with ink marks as well, glide slowly in the top right under lily pads with open pink lotus, over thin, faint lines of light',
     },
   },
 }
