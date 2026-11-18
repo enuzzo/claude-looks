@@ -7,7 +7,7 @@
 // manta (rise, glide, sink), never a turn. In the near koi's wake a few rings of dots open; minutes apart
 // a petal comes down. The light in the water is block glyphs, never a gradient.
 //
-// The same pond is written twice: at night (SCENE) and by day (SCENE_DAY), under slow caustics.
+// The same pond is written twice: at night (SCENE) and by day (SCENE_DAY).
 import { writeFileSync } from 'node:fs'
 import { inlineUses } from './inline-uses.mjs'
 import { join } from 'node:path'
@@ -28,10 +28,12 @@ const cell = fs => [0.602 * fs, 0.7 * fs] // a monospace advance at a font size,
 
 // ── the composition: the pond in the top right, beside the conversation (the owner's placement,
 // 2026-11-18: low on the left the koi kept passing under the text just written). Anchored top right
-// (xMaxYMin), so the koi keep their place as the window widens; the right panel covers them while it is
-// open. POND is the middle of the lit water, PETAL where a petal comes down now and then.
-const POND = [1420, 350]
-const PETAL_AT = [1322, 318]
+// (xMaxYMin). The koi swim the band between the conversation's glass and the right panel, x 1150 to
+// 1340: clear with both panels open from 1728 px up (1920: 1098 to 1353), and by the glass's soft edge
+// when the panel is closed. Only companions (pads) lie further right, where the open panel covers them.
+// POND is the middle of the lit water, PETAL where a petal comes down now and then.
+const POND = [1245, 380]
+const PETAL_AT = [1290, 250]
 
 const UNIT = 92.4 // viewBox units per body unit (a body is 3.1 long): the near koi is about 290 units nose to tail
 const DX = 0.0472 // one glyph cell, in body units: the detail of the sprite
@@ -48,8 +50,8 @@ const FRAMES = 8
 const KOI = [
   // The two swim along the open band, not across it: the kohaku down from under the corner pad, the
   // sanke up from the foot, side by side and never crossing, so neither spends its run under the text.
-  { id: 'k1', mid: [1470, 270], head: [-0.42, 0.908], reach: 200, journey: 121, shift: 0.42, scale: 1, beat: 19, hold: 2 },
-  { id: 'k2', mid: [1326, 540], head: [0.2, -0.98], reach: 170, journey: 97, shift: 0.62, scale: 0.76, beat: 17, hold: 5 },
+  { id: 'k1', mid: [1282, 300], head: [-0.17, 0.985], reach: 200, journey: 121, shift: 0.42, scale: 1, beat: 19, hold: 2 },
+  { id: 'k2', mid: [1192, 600], head: [0.12, -0.993], reach: 170, journey: 97, shift: 0.62, scale: 0.76, beat: 17, hold: 5 },
 ]
 // the markings every frame carries, [s, z, rs, rz] in body units: red patches along the back, and small
 // ink marks in the white between them. Each koi colours them its own way (see the coats below).
@@ -163,7 +165,7 @@ function along(k, p) {
 // bright accent. They lie still, as pads do on a calm pond. Three around the koi, which swim beneath them.
 const PADS = [
   // x, y, radius (viewBox), notch angle (deg), lotus?
-  [1546, 98, 86, 205, true], [1496, 606, 64, 55, true], [1368, 92, 38, 330, false], [1368, 668, 27, 140, false],
+  [1520, 120, 86, 205, true], [1470, 560, 64, 55, true], [1236, 70, 34, 330, false], [1330, 760, 27, 140, false],
 ]
 // A pad is a mosaic: every part of it is a shape with staircase edges on the cells of a small tile of
 // block glyphs (drawn once, repeated: a leaf of a few hundred glyphs for the cost of a handful), so its
@@ -214,6 +216,18 @@ function lotus(rad, open) {
   const flower = (n, k, off) => (x, y) => { const t = Math.atan2(y / 0.8, x); return Math.hypot(x, y / 0.8) < R0 * k * (0.5 + 0.5 * Math.abs(Math.cos((n * (t - off)) / 2)) ** 0.8) }
   const layers = [[flower(8, 1, 0.2), 0], [flower(8, 0.74, 0.2 + Math.PI / 8), 1], [flower(6, 0.46, 0.5), 2], [(x, y) => Math.hypot(x, y / 0.8) < R0 * 0.15, 3]]
   return layers.map(([inside, n]) => `<path d="${mosaic(inside, R0 * 1.05, LW, LH)}" fill="url(#lo${n})"/>`).join('')
+}
+// One small lily alone on the left, in the open band between the sidebar and the conversation (x 300:
+// clear from 1512 px up with both panels open), high enough that wide windows, which crop the foot,
+// keep it. It floats: a slow drift of a few units, eased, never stepped, so it is smooth; a few faint
+// rings open around it now and then.
+const LEFT_LILY = [300, 540, 54, 320, true]
+const BOB = 13
+const leftLily = (L, anim) => {
+  const [x, y, rad, notch] = LEFT_LILY, a = (notch * Math.PI) / 180
+  const flower = `<g transform="translate(${f(-Math.cos(a) * rad * 0.16)} ${f(-Math.sin(a) * rad * 0.13)})">${lotus(rad, Math.max(L.open, 0.55))}</g>`
+  const rings = anim ? ripple([0, 0], { cycle: 41, first: 7, count: 3, peak: 0.3 }) + ripple([0, 0], { cycle: 67, first: 30, count: 2, peak: 0.22 }) : ''
+  return `<g transform="translate(${x} ${y})">${rings}<g${anim ? ` style="animation:bob ${BOB}s ease-in-out infinite"` : ''}>${padGlyphs(LEFT_LILY)}${flower}</g></g>`
 }
 // the pads, then the flowers, set a little off the pad's middle, away from the notch
 const padsSvg = L => PADS.map(p => `<g transform="translate(${p[0]} ${p[1]})">${padGlyphs(p)}</g>`).join('') +
@@ -270,44 +284,15 @@ function speckTile(id, size, n) {
 }
 const SPECKS = speckTile('specks', 420, 22)
 
-// ── daylight: caustics, the thin bright lines ripples focus on the floor of a pond. They are the
-// zero-lines of a slow field of bent waves, which close into irregular cells; where a line crosses a
-// glyph cell it is set by its height in the cell (' high, - or ~ in the middle, , low; a . where it
-// runs steep), so the lines curve in type. They are densest by the koi and gone before the middle. The
-// sheet is drawn once and laid down twice, the two copies drifting apart and breathing out of step.
-const CAUSTIC_FS = 9
-const CAUSTICS = (() => {
-  const cw = 0.602 * CAUSTIC_FS, ch = CAUSTIC_FS
-  const x0 = 860, y0 = -10, cols = Math.ceil((W + 30 - x0) / cw), nrows = Math.ceil((760 - y0) / ch)
-  const field = (x, y) => Math.sin(x / 55 + 1.7 * Math.sin(y / 89 + 1)) + Math.sin(y / 34 + 1.9 * Math.sin(x / 89 + 2)) + 0.7 * Math.sin((x + y) / 89 + 1.3 * Math.sin((x - y) / 55))
-  const fr = []
-  for (let r = 0; r < nrows; r++) {
-    const row = []
-    for (let c = 0; c < cols; c++) {
-      const x = x0 + (c + 0.5) * cw, y = y0 + r * ch
-      const top = field(x, y), foot = field(x, y + ch), left = field(x - cw / 2, y + ch / 2), right = field(x + cw / 2, y + ch / 2)
-      // how much of the sheet is left this far from the spiral's eye
-      const far = Math.hypot(x - POND[0], y + ch / 2 - POND[1]) / 420
-      let chr = ' '
-      if (R() > far ** 2.5) {
-        if (top * foot < 0) {
-          const p = top / (top - foot)
-          chr = p < 0.3 ? "'" : p > 0.7 ? ',' : left * right < 0 ? '-' : '~'
-        } else if (left * right < 0) chr = '.'
-      }
-      row.push([chr])
-    }
-    fr.push(row)
-  }
-  return `<g id="caustics" class="cs" style="font-size:${CAUSTIC_FS}px" transform="translate(${x0} ${y0})">${rows(fr, cw, ch)}</g>`
-})()
+// (Daylight caustics were here until 0.5.8: thin glyph lines that never changed, so they read as
+// strange marks rather than light, and were removed at the owner's word.)
 
 // ── the two ponds. A coat is the colour of the white (a gradient from head to tail on the near koi), of
 // the red marks, of the ink marks, and how much of the koi shows at its depth: the near koi is a kohaku
 // (its ink stays white), the far one a sanke.
 const LOOKS = {
   night: {
-    water: ['#08161f', '#060f19', '#050b14'],
+    water: ['#0d2430', '#060f19', '#050b14'], // the first is the block shading's glyph colour
     glowA: '#2f9fa6', // the block light of the lit water around the koi
     glowB: '#5056c8', // moonlight far across the pond
     coats: [
@@ -322,7 +307,7 @@ const LOOKS = {
   },
   // the same pond by day: jade water under a high, soft sun; muted, and still dark enough to sit behind code
   day: {
-    water: ['#0e2925', '#0b211f', '#091b1a'],
+    water: ['#16392f', '#0b211f', '#091b1a'],
     glowA: '#6cc995', // sunlit water around the koi
     glowB: '#a7c77c', // light through leaves, far across the pond
     coats: [
@@ -334,7 +319,6 @@ const LOOKS = {
     ring: '#e0f3e3', speck: '#b5d8bf', speckOpacity: 0.3,
     petal: ['#fff0ea', '#eab5b3'],
     pad: ['#256638', '#388a43', '#62b34f'], lotus: ['#d8489c', '#f57cc0', '#ffc4e6', '#ffd98a'], open: 1,
-    caustics: '#e6f4cf',
   },
 }
 
@@ -351,23 +335,25 @@ const glowTile = (id, fill) => {
   }
   return `<pattern id="${id}" width="${f(GT_C * GW)}" height="${GT_R * GH}" patternUnits="userSpaceOnUse"><g style="font-size:${GLOW_FS}px;dominant-baseline:hanging">${t}</g></pattern>`
 }
-function blockGlow([cx, cy], rx, ry, levels) {
+function blockGlow([cx, cy], rx, ry, levels, rows = 1) { // rows: glyph rows per step of the staircase
   return levels.map(([k, o]) => {
     let d = ''
-    for (let y = Math.round((cy - ry * k) / GH) * GH; y <= cy + ry * k; y += GH) {
+    for (let y = Math.round((cy - ry * k) / GH) * GH; y <= cy + ry * k; y += GH * rows) {
       const v = (y + GH / 2 - cy) / (ry * k)
       if (Math.abs(v) >= 1) continue
       const half = rx * k * Math.sqrt(1 - v * v)
       const x0 = Math.round((cx - half + (R() - 0.5) * 16 * GW) / GW) * GW, x1 = Math.round((cx + half + (R() - 0.5) * 16 * GW) / GW) * GW
-      if (x1 > x0) d += `M${f(x0)} ${y}h${f(x1 - x0)}v${GH}h${f(x0 - x1)}z`
+      if (x1 > x0) d += `M${f(x0)} ${y}h${f(x1 - x0)}v${GH * rows}h${f(x0 - x1)}z`
     }
     return { d, o }
   })
 }
 // One pool of light, tall like the band the pond lies in. (A second, far light across the top left was
 // a slab with a hard foot under the conversation; the middle is ground only.)
-const POND_LIGHT = blockGlow(POND, 300, 370, [[1, 0.045], [0.56, 0.07]])
+const POND_LIGHT = blockGlow(POND, 230, 400, [[1, 0.045], [0.56, 0.07]])
 const BREATHS = [17, 23, 29, 37, 43]
+// the water's own shading, the old gradient's light corner, as two wide still levels of block glyphs
+const WATER = blockGlow([0, 0], 1150, 820, [[1, 0.6], [0.55, 0.6]], 3)
 
 function scene(name) {
   const L = LOOKS[name]
@@ -384,10 +370,9 @@ ${SWIMMING.map(i => JOURNEY_KF(i, KOI[i])).join('\n')}
 .k2{opacity:${L.k2.opacity}}
 .rg{opacity:0;fill:${L.ring}}
 .pt{fill:url(#pt)}.petal{opacity:0;animation:petal 233s steps(932) infinite 55s}
-${L.caustics ? `.cs{fill:${L.caustics}}.cA{opacity:.3;animation:cA 47s steps(94) infinite}
-@keyframes cA{0%,100%{opacity:.3;transform:translate(0,0)}50%{opacity:.12;transform:translate(-13px,8px)}}
-` : ''}pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s steps(311) infinite}
-.gl{opacity:var(--o)}.lean{animation:lean 41s steps(82) infinite}
+pattern text{fill:${L.speck}}.specks{opacity:${L.speckOpacity};animation:slide 311s steps(311) infinite}
+.gl{opacity:var(--o)}
+@keyframes bob{0%,100%{transform:translate(-1.5px,-2px)}50%{transform:translate(1.5px,2.5px)}}.lean{animation:lean 41s steps(82) infinite}
 @keyframes gl{0%,100%{opacity:var(--o)}50%{opacity:var(--p)}}
 @keyframes lean{0%,100%{transform:translate(-4px,2px)}50%{transform:translate(4px,-2px)}}
 ${[...ringCycles].map(ringKf).join('')}
@@ -395,9 +380,9 @@ ${[...ringCycles].map(ringKf).join('')}
 @keyframes petal{0%{opacity:0;transform:translate(13px,-21px) rotate(-55deg) scale(2.2)}2.15%{opacity:.95;transform:translate(0,0) rotate(0deg) scale(1)}25.7%{opacity:.8;transform:translate(-34px,21px) rotate(34deg) scale(1)}28.3%,100%{opacity:0;transform:translate(-37px,23px) rotate(38deg) scale(.92)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>`
-  const shared = `<linearGradient id="water" x1="0" y1="0" x2=".4" y2="1"><stop offset="0" stop-color="${L.water[0]}"/><stop offset=".6" stop-color="${L.water[1]}"/><stop offset="1" stop-color="${L.water[2]}"/></linearGradient>
-${glowTile('gA', L.glowA)}`
-  const ground = `<rect width="${W}" height="${H}" fill="url(#water)"/>`
+  const shared = `${glowTile('gA', L.glowA)}${glowTile('gW', L.water[0])}`
+  // the water: its darkest colour, lifted toward the top left by two levels of block glyphs (no gradient)
+  const ground = `<rect width="${W}" height="${H}" fill="${L.water[2]}"/>${WATER.map(({ d, o }) => `<path d="${d}" fill="url(#gW)" opacity="${o}"/>`).join('')}`
   const light = (levels, tile, anim) => levels.map(({ d, o }, n) => `<path class="gl" d="${d}" fill="url(#${tile})" style="--o:${o}${anim ? `;--p:${f(o * 0.55)};animation:gl ${BREATHS[n]}s steps(${BREATHS[n] * 2}) infinite -${BREATHS[n] * 0.37 * (n + 1)}s` : ''}"/>`).join('')
   const glows = anim => `<g${anim ? ' class="lean"' : ''}>${light(POND_LIGHT, 'gA', anim)}</g>`
   const fish = anim => SWIMMING.map(i => koiAt(KOI[i], i, anim, koiGlyphs(i, L.coats[i], anim, anim ? PTS[i] : PTS_POSTER[i]))).join('\n')
@@ -409,22 +394,21 @@ ${style}
 <defs>
 ${shared}
 <linearGradient id="pt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${L.petal[0]}"/><stop offset="1" stop-color="${L.petal[1]}"/></linearGradient>
-${SPECKS}${L.caustics ? CAUSTICS : ''}${PETAL}${RINGS}${PAD_TILES(L)}
+${SPECKS}${PETAL}${RINGS}${PAD_TILES(L)}
 <filter id="bloom" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
 ${ground}
 ${glows(true)}
-${L.caustics ? `<g class="cA"><use href="#caustics"/></g>` : ''}
 <g class="specks"><rect y="-420" width="${W + 420}" height="${H + 420}" fill="url(#specks)"/></g>
 <g filter="url(#bloom)">${fish(true)}</g>
 ${ripples}
-<g class="pads">${padsSvg(L)}</g>
+<g class="pads">${padsSvg(L)}${leftLily(L, true)}</g>
 <g transform="translate(${PETAL_AT[0]} ${PETAL_AT[1]})">${petalRings}<g class="petal"><use href="#petal"/></g></g>
 </svg>`.replace(/\n\s*\n/g, '\n')
 
   const poster = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMaxYMin slice" width="320" height="180">
 <style>${base}.k2{opacity:${L.k2.opacity}}</style>
-<defs>${shared}</defs>${ground}${light(POND_LIGHT, 'gA', false)}${fish(false)}
+<defs>${shared}</defs><rect width="${W}" height="${H}" fill="${L.water[1]}"/>${light(POND_LIGHT, 'gA', false)}${fish(false)}
 </svg>`.replace(/\n/g, '')
   return { svg, poster }
 }
@@ -433,7 +417,7 @@ ${ripples}
 const written = ({ svg, poster }) => ({ svg: inlineUses(svg), poster: inlineUses(poster) })
 const night = written(scene('night')), day = written(scene('day'))
 console.log(`koi: night ${night.svg.length} characters, day ${day.svg.length}, poster ${night.poster.length}`)
-if (process.env.SIZES) console.log({ rings: RINGS.length, caustics: CAUSTICS.length, FS })
+if (process.env.SIZES) console.log({ rings: RINGS.length, FS })
 if (night.poster.length >= 12000) throw new Error('poster over 12,000 characters')
 for (const v of [night.svg, day.svg]) if (v.length >= 131072) throw new Error(`scene is ${v.length} characters, over 131,072`)
 writeFileSync(join(ROOT, 'hooks/looks/koi/scene.js'),

@@ -126,6 +126,11 @@ viewBox at the usual windows (1280 × 800 to 3440 × 1440), with the panels open
 - **The right band (0 to 290 units from the right, `xMax…`)** is clear only while the right panel is
   closed, and wholly covered when it opens. A subject there disappears with the panel: use it only for a
   companion, never for the subject.
+- **The band between the column and the right panel** (koi, 2026-11-18), with `xMax…` anchoring: x 1150
+  to 1340 is clear with both panels open from 1728 px up (1920: 1098 to 1353; 2560: 1024 to 1415), and
+  lies by the glass's soft edge when the panel closes. Narrow (at 1512 px only 1179 to 1287), so a subject
+  there runs along it, not across. Whatever lies further right is a companion the open panel covers.
+  Check the panel-open sheets above all: that is how the owner works.
 - **Height:** wide windows crop the top (16:9 by 100 units, 21:9 by 330), so anchor at the foot
   (`…YMax`) and keep what matters between 340 and 960.
 - **The middle** (the column) is under glass and text: only ground, light and haze, nothing with edges.
@@ -189,7 +194,7 @@ until they meet this standard.
 | `abyssal` | **done** (2026-11-17, Effulgence rework) | a manta of glyphs set in 3D (tools/scenes/glyph3d.mjs), glowing, in a shaft of light made of block glyphs, low on the left; 3D-glyph moon jellies with coloured tentacles on the right; lime and magenta algae |
 | `synthwave` | **done** (2026-11-17, calmer rework) | a banded sun of type on the horizon in the open field on the left, low glyph ridges, a field of grid dots drifting toward you; rare horizon light and falling star |
 | `tide` | **done** (2026-11-16) | a moon ray-cast into glyphs high in the open field on the left; a perspective sea of type with its light on the water; rare falling stars |
-| `koi` | **done** (2026-11-18, top right) | two koi of glyphs set in 3D (kohaku, sanke) with fins and forked tails, gliding straight runs like the manta (rise, glide, sink, never a turn) in the band at the top right beside the conversation (the owner's placement: low on the left they passed under fresh text; the right panel covers them while open); lily pads of block mosaic, lotus open by day and closed at night; block-glyph light; rings, a rare petal; jade water with caustics by day |
+| `koi` | **done** (2026-11-18, top right) | two koi of glyphs set in 3D (kohaku, sanke) with fins and forked tails, gliding straight runs like the manta (rise, glide, sink, never a turn) in the band between the conversation and the right panel (x 1150 to 1340, xMaxYMin: clear with both panels open from 1728 px; the owner's placement, low on the left they passed under fresh text); lily pads of block mosaic further right, lotus open by day and closed at night; a small lily floating alone on the left with faint rings; water and light shaded in block glyphs, no gradient; no caustics |
 | `mosaic-sky` | withdrawn to `drafts/` | |
 | `dot-matrix` | withdrawn to `drafts/` | |
 | `rain` | **done** (2026-11-16) | a slow curtain of glyph rain hanging from the sidebar's edge, three depths; a rare lone column in the empty field |

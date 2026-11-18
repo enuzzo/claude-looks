@@ -26,7 +26,7 @@ export default {
     },
     scene: {
       source: SCENE_DAY,
-      alt: 'A muted jade pond by day seen from above: two koi made of ASCII characters, one bone white with vermilion patches, one with ink marks as well, glide slowly in the top right under lily pads with open pink lotus, over thin, faint lines of light',
+      alt: 'A muted jade pond by day seen from above: two koi made of ASCII characters, one bone white with vermilion patches, one with ink marks as well, glide slowly in the top right under lily pads with open pink lotus',
     },
   },
 }
