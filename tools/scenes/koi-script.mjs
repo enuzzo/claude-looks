@@ -292,7 +292,7 @@ const SPECKS = speckTile('specks', 420, 22)
 // (its ink stays white), the far one a sanke.
 const LOOKS = {
   night: {
-    water: ['#0d2430', '#060f19', '#050b14'], // the first is the block shading's glyph colour
+    water: ['#0c202b', '#050e16', '#040a12'], // the first is the block shading's glyph colour
     glowA: '#2f9fa6', // the block light of the lit water around the koi
     glowB: '#5056c8', // moonlight far across the pond
     coats: [
@@ -307,7 +307,7 @@ const LOOKS = {
   },
   // the same pond by day: jade water under a high, soft sun; muted, and still dark enough to sit behind code
   day: {
-    water: ['#16392f', '#0b211f', '#091b1a'],
+    water: ['#14332a', '#0a1e1c', '#081817'],
     glowA: '#6cc995', // sunlit water around the koi
     glowB: '#a7c77c', // light through leaves, far across the pond
     coats: [

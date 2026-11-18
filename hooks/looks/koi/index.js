@@ -11,7 +11,7 @@ export default {
   problems: [...problems, ...dayProblems],
   args: {
     colors: theme,
-    backdrop: { id: 'koi', glass: { blur: 3, tint: '#07141c', opacity: 0.3 } },
+    backdrop: { id: 'koi', glass: { blur: 3, tint: '#061219', opacity: 0.3 } },
   },
   scene: {
     source: SCENE,
@@ -22,7 +22,7 @@ export default {
     hours: [7, 19],
     args: {
       colors: dayTheme,
-      backdrop: { id: 'koi-day', glass: { blur: 3, tint: '#0a201e', opacity: 0.3 } },
+      backdrop: { id: 'koi-day', glass: { blur: 3, tint: '#091d1b', opacity: 0.3 } },
     },
     scene: {
       source: SCENE_DAY,
