@@ -3,7 +3,7 @@ import { makeColors } from '../../make-colors.js'
 // A snowy night: deep navy grays like the sky behind the falling snow, candy-cane red accent, pine green
 // success, the amber of lit windows for warnings, fairy-light violet pro.
 export const { theme, problems } = makeColors({
-  label: 'Christmas',
+  label: 'Xmas',
   only: 'dark',
   roles: { accent: '#ff4d5e', danger: '#ff6b7a', success: '#5fd88a', warning: '#ffc25a', pro: '#c49cff' },
   dark: {

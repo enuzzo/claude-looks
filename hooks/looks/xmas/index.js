@@ -5,13 +5,13 @@ const { SCENE } = SCENE_MODULE
 
 /** @type {import('../types').Look} */
 export default {
-  id: 'christmas',
-  label: 'Christmas',
+  id: 'xmas',
+  label: 'Xmas',
   description: 'A snowy village at night in glowing glyphs: cottages with fairy lights and a snowman on the left, a kawaii snowplow under candy-cane lamps on the right, snow falling over everything.',
   problems,
   args: {
     colors: theme,
-    backdrop: { id: 'christmas', glass: { blur: 3, tint: '#040c18', opacity: 0.35 } },
+    backdrop: { id: 'xmas', glass: { blur: 3, tint: '#040c18', opacity: 0.35 } },
   },
   scene: {
     source: SCENE,

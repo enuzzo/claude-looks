@@ -21,6 +21,7 @@ const RENAMED: Readonly<Record<string, string>> = {
   'digital-rain': 'rain',
   'ascii-tide': 'tide',
   'koi-script': 'koi',
+  christmas: 'xmas',
 }
 const renamed = (id: string) => RENAMED[id] ?? id
 
