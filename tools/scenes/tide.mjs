@@ -50,14 +50,14 @@ seaP.at = [150, HZ]
 // the lighthouse sits well to the right, clear of the conversation's glass with the right panel closed
 // (the panel, open, covers it: the owner's call, 2026-11-23)
 const LH = { s: 0.95, x: 1465, foot: 895 }
-const lightP = { id: 'light', img: PIC('lighthouse'), scale: LH.s, div: 1 } // the picture's own glyphs
+const lightP = { id: 'light', img: PIC('lighthouse'), scale: LH.s, div: 2 } // two cells to each of the picture's glyphs
 lightP.colour = c => c.map(v => Math.min(255, v * 1.22))
 // its face (closed eyes, smile, rosy cheeks) is drawn finer than the picture's glyphs: read on a grid
 // four times finer, as mean colours, and kept as small dark and pink blocks over the body
 // In the picture the face is a smooth white plate on the tower with the marks drawn on it: here the
 // plate's cells replace the tower's glyphs there, as small blocks of their own colour.
 const FACE = [122, 128, 210, 174]
-const faceP = { id: 'face', img: lightP.img, scale: LH.s, div: 3.4, src: FACE, at: [0, 0] }
+const faceP = { id: 'face', img: lightP.img, scale: LH.s, div: 4.4, src: FACE, at: [0, 0] }
 lightP.src = [0, 0, lightP.img.w, lightP.img.h]
 lightP.at = [LH.x - 165 * LH.s, LH.foot - 290 * LH.s]
 faceP.at = [lightP.at[0] + FACE[0] * LH.s, lightP.at[1] + FACE[1] * LH.s]
@@ -76,9 +76,9 @@ const pose = (id, scale, div, waterX, waterY, y = WHALE.y) => {
   p.colour = c => c.map(v => Math.min(255, v * (id === 'spout' ? 2.9 : 2.3)))
   return p
 }
-const spoutP = pose('spout', 0.3, 0.7, 690, 656)
-const tailP = pose('tail', 0.64, 1.25, 212, 282, 740)
-const diveP = pose('dive', 0.3, 0.62, 725, 420, 740)
+const spoutP = pose('spout', 0.3, 0.62, 690, 656)
+const tailP = pose('tail', 0.64, 1.1, 212, 282, 740)
+const diveP = pose('dive', 0.3, 0.55, 725, 420, 740)
 
 // ── read the cells
 const glyphSolid = c => { const [, sat, val] = hsv(c); return val < 0.3 ? '+' : sat < 0.32 && val > 0.55 ? '*' : '#' }
@@ -103,12 +103,21 @@ const shapeP = { ...lightP, id: 'shape', keep: undefined, colour: undefined }
 const shape = readPart(Object.assign(shapeP, { keep: p => inRock(p.sx, p.sy) }))
 // marks are dark on a bright neighbourhood; plate cells keep only where the picture is lit, so the
 // plate's edge follows the tower instead of a box
-for (const p of face) p.kind = p.sat > 0.12 && (p.hue < 30 || p.hue > 315) && p.val > 0.45 ? 'pink' : p.L < 0.5 && p.val < 0.6 ? 'mark' : p.L > 0.62 ? 'plate' : 'none'
+const MARKS = [128, 134, 204, 168] // where the eyes, smile and cheeks are; dark cells outside are the tower's edge
+for (const p of face) p.kind = p.sx < MARKS[0] || p.sx > MARKS[2] || p.sy < MARKS[1] || p.sy > MARKS[3] ? 'plate' : p.sat > 0.12 && (p.hue < 30 || p.hue > 315) && p.val > 0.45 ? 'pink' : p.L < 0.5 && p.val < 0.6 ? 'mark' : p.L > 0.62 ? 'plate' : 'none'
 const lit = (i, j) => face.some(q => q.i === i && q.j === j && q.kind !== 'none')
 // round the plate: its corner cells off
 const [mi, mj] = [Math.max(...face.map(p => p.i)), Math.max(...face.map(p => p.j))]
 for (const p of face) if (p.kind === 'plate' && Math.min(p.i, mi - p.i) + Math.min(p.j, mj - p.j) < 1) p.kind = 'none'
 for (const p of face) if (p.kind === 'mark' && !(lit(p.i - 2, p.j) && lit(p.i + 2, p.j)) && !(lit(p.i, p.j - 2) && lit(p.i, p.j + 2))) p.kind = 'none'
+// the face is symmetric: the right half is the left half mirrored (the picture's right eye has a stray stroke)
+{
+  const mid = face.reduce((m, p) => (Math.abs(p.sx - 165) < Math.abs(m.sx - 165) ? p : m), face[0]).i
+  const at = new Map(face.map(p => [`${p.i},${p.j}`, p]))
+  for (const p of face) if (p.i > mid) { const q = at.get(`${2 * mid - p.i},${p.j}`); p.kind = q ? q.kind : 'plate' }
+}
+const markAt = (i, j) => face.some(q => q.i === i && q.j === j && q.kind === 'mark')
+for (const p of face) if (p.kind === 'mark' && ![[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].some(([a, b]) => markAt(p.i + a, p.j + b))) p.kind = 'plate'
 const inFace = p => p.sx + p.S0 > FACE[0] && p.sx < FACE[2] && p.sy + p.S0 > FACE[1] && p.sy < FACE[3]
 
 // roles: the road's glints (pale and bright, under the moon) breathe in three sets; the lamp and its
@@ -146,6 +155,8 @@ for (let r = 0; r < ROWS; r++) {
 // the road's glints stay where the moon puts them, and breathe in three sets
 for (const p of sea) p.set = Math.floor(R() * 3)
 for (const p of light) p.lamp = p.hue > 135 && p.hue < 195 && p.sat > 0.3 && p.val > 0.45 && (p.sy < 75 || p.sy > 290)
+// the lamp's light is a warm yellow (the owner, 2026-11-23): the picture's mint, recoloured by its brightness
+for (const p of light) if (p.lamp) p.c = [255, 214, 110].map(v => v * Math.min(1, 0.35 + p.val))
 
 M.pool(moon, moonP, 22)
 for (const p of sea) p.c = p.c.map(v => v * 0.78) // the road a little dimmer than the picture's (the owner)
@@ -216,7 +227,7 @@ const T0 = 131
 wkf('wTail', [[0, up(0, 0.4)], [T0, up(0, 0.4)], [T0 + 5, up(1, 1)], [T0 + 9, up(1, 1)], [T0 + 11.5, up(0, 1)], [WCYCLE, up(0, 1)]])
 wkf('wDive', [[0, up(0, 1)], [T0 + 9, up(0, 1)], [T0 + 11, up(1, 1)], [T0 + 17, up(0, 0.3)], [WCYCLE, up(0, 0.3)]])
 // ── the lighthouse's light: it dozes, its lamp low and breathing; every 157 s (prime) it wakes, its
-// lamp brightens and a fan of mint glyphs turns once about it: pointing left, swinging toward the
+// lamp brightens and a fan of yellow glyphs turns once about it: pointing left, swinging toward the
 // viewer (the lamp flashing as it faces us), out to the right, and gone. Twelve seconds; hidden the rest.
 const lampCells = light.filter(p => p.lamp && p.sy < 75)
 const LAMP = [lampCells.reduce((a, p) => a + p.x, 0) / lampCells.length + 4, lampCells.reduce((a, p) => a + p.y, 0) / lampCells.length + 4]
@@ -227,12 +238,12 @@ bk('wake', [[0, 'opacity:0'], [0.1, 'opacity:0'], [2, 'opacity:.6'], [5.6, 'opac
 bk('beam', [[0, 'transform:scaleX(1);opacity:0'], [0.1, 'transform:scaleX(1);opacity:0'], [2, 'transform:scaleX(1);opacity:.85'], [6, 'transform:scaleX(.04);opacity:1'], [10, 'transform:scaleX(-1);opacity:.85'], [12.9, 'transform:scaleX(-1);opacity:0'], [BCYCLE, 'transform:scaleX(-1);opacity:0']])
 let beamSvg = ''
 {
-  const L = 470, rays = 11, spread = 0.15, byBand = [[], [], [], []]
+  const L = 520, rays = 15, spread = 0.24, byBand = [[], [], [], []]
   for (let k = 0; k < rays; k++) {
     const a = ((k - (rays - 1) / 2) / ((rays - 1) / 2)) * spread
     for (let d = 14; d < L; d += 9 + d * 0.012) {
       const band = Math.min(3, Math.floor((d / L) * 4))
-      if (Math.abs(k - (rays - 1) / 2) > 3 && R() < 0.3) continue
+      if (Math.abs(k - (rays - 1) / 2) > 4 && R() < 0.35) continue
       byBand[band].push([LAMP[0] - d, LAMP[1] + d * Math.tan(a)])
     }
   }
@@ -278,7 +289,7 @@ const STAR_B = fallingStar('sb', { x0: 1300, y0: 130, x1: 1420, y1: 280, cycle: 
 const SKY = '#060a18'
 const bloom = `<filter id="bloom" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
 const grads = `<linearGradient id="sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${H}"><stop offset="0" stop-color="#03061a"/><stop offset="${f(HZ / H - 0.012)}" stop-color="#091026"/><stop offset="${f(HZ / H + 0.004)}" stop-color="#060b1d"/><stop offset="1" stop-color="${SKY}"/></linearGradient>
-<radialGradient id="lampGlow"><stop offset="0" stop-color="#c8fff4" stop-opacity=".95"/><stop offset=".18" stop-color="#7ff5df" stop-opacity=".55"/><stop offset=".5" stop-color="#5cf2d6" stop-opacity=".14"/><stop offset="1" stop-color="#5cf2d6" stop-opacity="0"/></radialGradient>
+<radialGradient id="lampGlow"><stop offset="0" stop-color="#fff6d6" stop-opacity=".95"/><stop offset=".18" stop-color="#ffd97a" stop-opacity=".55"/><stop offset=".5" stop-color="#ffc857" stop-opacity=".14"/><stop offset="1" stop-color="#ffc857" stop-opacity="0"/></radialGradient>
 <radialGradient id="halo"><stop offset="0" stop-color="#9fb2ec" stop-opacity=".16"/><stop offset=".45" stop-color="#7286c8" stop-opacity=".05"/><stop offset="1" stop-color="#5b6db0" stop-opacity="0"/></radialGradient>`
 
 const style = `<style>
@@ -289,7 +300,7 @@ ${GLINT.map((t, i) => `.g${i}{animation:gl ${t}s steps(36) infinite ${f(-i * 4.3
 .lamp{opacity:.55;animation:doze 14s steps(30) infinite}
 .wake{transform-origin:${f(LAMP[0])}px ${f(LAMP[1])}px;opacity:0;animation:wake ${BCYCLE}s ease-in-out infinite ${BFIRST - BCYCLE}s}
 .beam{transform-origin:${f(LAMP[0])}px ${f(LAMP[1])}px;opacity:0;animation:beam ${BCYCLE}s ease-in-out infinite ${BFIRST - BCYCLE}s}
-.beam text{fill:#7ff5df}
+.beam text{fill:#ffe08a}
 .wb{transform-origin:${f(WHALE.x)}px ${f(spoutP.water)}px;opacity:0;${wAnim('wBack')}}
 .ws{transform-origin:${f(blow[0])}px ${f(blow[1])}px;opacity:0;${wAnim('wSpout')}}
 .wt{transform-origin:${f(WHALE.x)}px ${f(tailP.water)}px;opacity:0;${wAnim('wTail')}}
@@ -320,7 +331,7 @@ ${GLINT.map((_, i) => `<g class="g${i}">${M.shapes(sea.filter(p => p.set === i),
 ${whale}
 ${M.solid(shape, shapeP, '#080d20')}${M.solid(lightBody, lightP, '#080d20')}${M.shapes(lightBody, lightP)}${M.shapes(light.filter(p => !p.lamp && p.sy > 296), lightP)}
 ${M.solid(face.filter(p => p.kind === 'plate'), faceP, '#d4e2f7')}${M.solid(face.filter(p => p.kind === 'mark'), faceP, '#18213a')}${M.solid(face.filter(p => p.kind === 'pink'), faceP, '#f29bb0')}
-<g class="lamp">${M.shapes(lamp, lightP)}</g><circle class="wake" cx="${f(LAMP[0])}" cy="${f(LAMP[1])}" r="70" fill="url(#lampGlow)"/>
+<g class="lamp">${M.shapes(lamp, lightP)}</g><circle class="wake" cx="${f(LAMP[0])}" cy="${f(LAMP[1])}" r="90" fill="url(#lampGlow)"/>
 ${beamSvg}
 ${STAR_A}`
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice">
