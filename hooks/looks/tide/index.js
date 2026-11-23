@@ -7,7 +7,7 @@ const { SCENE } = SCENE_MODULE
 export default {
   id: 'tide',
   label: 'Tide',
-  description: 'A night sea set in type: a ray-cast ASCII moon high on the left, slow swells of glyphs, its light shimmering on the water; minutes apart, a star falls in.',
+  description: 'A night sea in glowing glyphs: a full moon high on the left, gentle swells, a sleepy kawaii lighthouse low on the right; now and then a whale spouts or dives in the moonlight.',
   problems,
   args: {
     colors: theme,
@@ -16,6 +16,6 @@ export default {
   scene: {
     source: SCENE,
     poster: /** @type {{ POSTER?: string }} */ (SCENE_MODULE).POSTER,
-    alt: 'A dark indigo night: a gibbous moon drawn in ASCII characters, its seas and craters shaded in glyphs, hangs in the upper left over a sea of rows of tildes and dashes, with a column of brighter glyphs where the moonlight falls on the water and a few faint stars',
+    alt: 'A dark indigo night drawn in glowing characters: a full moon with its seas and craters hangs in the upper left over a sea of rows of dashes and tildes, a road of bright glints below it; low on the right a small white and mint lighthouse with a sleepy smiling face stands on a rock, its lamp glowing mint; a few faint stars',
   },
 }

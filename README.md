@@ -71,7 +71,7 @@ Dark only. A quiet curtain of green-phosphor glyphs hanging from the sidebar's e
 
 ### `tide`
 
-Dark only. A night sea set entirely in type. High on the left, beside the sidebar, a moon ray-cast into glyphs, maria and craters and all; below it, rows of `. - ~ =` swell slowly toward you in perspective, and its light shimmers on the water in a road of brighter glyphs. Minutes apart, a star falls into the sea and rings of `o` open where it lands. Mint accent on ink-blue. Respects *reduce motion*.
+Dark only. A night sea in glowing glyphs, read cell by cell from pictures made for it. High on the left, beside the sidebar, a full moon with its maria and craters; below it, rows of `- ~ =` in perspective rock gently, their crests running in long bowed lines toward you, and the moon's road of glints breathes on the water. Low on the right, between the conversation and the right panel, a sleepy kawaii lighthouse with a mint lamp. Every few minutes a whale surfaces in the moon's road, with a tall spout, or lifts its tail and dives; now and then a star falls into the sea. Mint accent on ink-blue. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|
