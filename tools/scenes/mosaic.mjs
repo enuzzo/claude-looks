@@ -2,7 +2,7 @@
 // A picture made for a look is itself a grid of glowing glyphs on a dark ground. readPart() measures that
 // grid on a box of it and reads each cell (DIV cells to each of the picture's glyphs): its colour is the
 // colour of its brightest quarter of pixels (the glyph's own colour, not a mean washed out by the dark
-// between the strokes). drawCells() pools the colours of a set of cells by k-means into a small palette
+// between the strokes). mosaic() pools the colours of a set of cells by k-means into a small palette
 // and draws them as pattern-stroked lines in cell units: one tile per colour and glyph, drawn once and
 // repeated, and a run of cells along a row is one `h` of whole numbers. Thousands of cells cost what a
 // handful would (xmas: 12,000 cells in 116,000 characters, under 3 ms a frame).
@@ -90,7 +90,7 @@ export function measureGrid(img, [x0, y0, x1, y1], tMin = 7, tMax = 14) {
 // number, or [x, y] to stretch), div: cells per picture glyph, grid?: a measured grid to reuse,
 // remap?(x, y) → [x, y]: where in the picture to read a cell instead (to fill a hole), colour?(c) → c,
 // mean?(x, y) → true: read that cell's mean colour instead of its brightest quarter (fine dark marks),
-// keep?(cell) → false to drop }.
+// glyphScale?: glyphs smaller than their cells (1 fills them), keep?(cell) → false to drop }.
 // Returns the cells, each { part, i, j, x, y, c, raw, L, cover, hue, sat, val }, and sets part.S (one
 // cell in viewBox units) and part.origin (the viewBox point of cell 0, 0).
 export function readPart(part) {
@@ -123,7 +123,7 @@ export function mosaic({ glyph, U = 10, GLYPH = 1.12 } = {}) {
   function pool(ps, part, k) {
     if (!ps.length) return
     const [SW, SH] = part.S
-    const fs = Math.min((SW / 0.602) * GLYPH, SH * 1.25)
+    const fs = Math.min((SW / 0.602) * GLYPH, SH * 1.25) * (part.glyphScale ?? 1) // glyphScale: smaller glyphs in the same cells
     let cs = ps.filter((_, i) => i % Math.ceil(ps.length / k) === 0).slice(0, k).map(p => [...p.c])
     for (let it = 0; it < 12; it++) {
       const acc = cs.map(() => [0, 0, 0, 0])

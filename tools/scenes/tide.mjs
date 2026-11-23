@@ -2,7 +2,7 @@
 // A night sea in glowing glyphs, read cell by cell from pictures made for this look (tools/scenes/tide/,
 // cut from the owner's picks of the Codex compositions, in the style xmas began): the full moon high on
 // the left, in the open field beside the sidebar; the sea under it, its road of silver glints; a sleepy
-// kawaii lighthouse low on the right, between the conversation and the right panel, its lamp glowing mint.
+// kawaii lighthouse low on the far right, dozing, its beam turning once every 157 s.
 // Nothing festive.
 // Motion is soft and slow, like xmas's snow: the sea never churns; its rows sway sideways in bands, a
 // slow ease back and forth whose phase runs toward the viewer, so a long swell passes under the road; the
@@ -41,13 +41,15 @@ moonP.at = [MOON[0] - 187 * 0.72, MOON[1] - 190 * 0.72] // the disc's middle is 
 // The moon's road: from the picture's sea, only the glints under its moon (x 150 to 620), stretched a
 // little to reach the foot. The rest of the sea is drawn in rows below (code, not the picture: read
 // whole it was coarse, sparse, and 40,000 characters).
-const seaP = { id: 'sea', img: PIC('sea'), div: 1.6 }
+const seaP = { id: 'sea', img: PIC('sea'), div: 1.6, glyphScale: 0.72 }
 seaP.src = [150, 12, 620, seaP.img.h]
 seaP.scale = [1, (H - HZ) / (seaP.img.h - 12)]
 seaP.at = [150, HZ]
 
 // the lighthouse on its rock, low on the right; the rock's foot is at y 290 of the crop, its middle x 165
-const LH = { s: 0.95, x: 1225, foot: 895 }
+// the lighthouse sits well to the right, clear of the conversation's glass with the right panel closed
+// (the panel, open, covers it: the owner's call, 2026-11-23)
+const LH = { s: 0.95, x: 1465, foot: 895 }
 const lightP = { id: 'light', img: PIC('lighthouse'), scale: LH.s, div: 1 } // the picture's own glyphs
 lightP.colour = c => c.map(v => Math.min(255, v * 1.22))
 // its face (closed eyes, smile, rosy cheeks) is drawn finer than the picture's glyphs: read on a grid
@@ -71,12 +73,12 @@ const pose = (id, scale, div, waterX, waterY, y = WHALE.y) => {
   p.water = y
   // the body's blue under its silver edge: coarse cells read as their mean, lifted, keep both
   p.mean = () => true
-  p.colour = c => c.map(v => Math.min(255, v * (id === 'spout' ? 2.4 : 1.9)))
+  p.colour = c => c.map(v => Math.min(255, v * (id === 'spout' ? 2.9 : 2.3)))
   return p
 }
-const spoutP = pose('spout', 0.27, 0.75, 690, 656)
-const tailP = pose('tail', 0.5, 1.2, 212, 282, 735)
-const diveP = pose('dive', 0.24, 0.62, 725, 420, 735)
+const spoutP = pose('spout', 0.3, 0.7, 690, 656)
+const tailP = pose('tail', 0.64, 1.25, 212, 282, 740)
+const diveP = pose('dive', 0.3, 0.62, 725, 420, 740)
 
 // ── read the cells
 const glyphSolid = c => { const [, sat, val] = hsv(c); return val < 0.3 ? '+' : sat < 0.32 && val > 0.55 ? '*' : '#' }
@@ -123,8 +125,9 @@ const rows = []
 let seaTiles = ''
 R = rng(7041)
 for (let r = 0; r < ROWS; r++) {
-  const t = (r + 0.5) / ROWS, y = rowY(r), fs = 5 + 11.5 * t
-  const lambda = 260 + 620 * t, n = Math.round(lambda / (0.602 * fs * 1.45)), px = lambda / n
+  // glyphs small (4 to 11 units), set a little apart, so the water reads fine-grained, not as type
+  const t = (r + 0.5) / ROWS, y = rowY(r), fs = 4 + 7 * t
+  const lambda = 260 + 620 * t, n = Math.round(lambda / (0.602 * (5 + 11.5 * t) * 1.3)), px = lambda / n
   const per = LEVELS.map(() => [])
   for (let k = 0; k < n; k++) {
     const u = (2 * Math.PI * k) / n
@@ -133,7 +136,7 @@ for (let r = 0; r < ROWS; r++) {
     if (R() < [0.5, 0.3, 0.14, 0.06, 0.02][lv]) continue
     per[lv].push(f(k * px))
   }
-  const h = f(fs * 1.25), id = `r${r}`
+  const h = f((5 + 11.5 * t) * 1.25), id = `r${r}`
   // where this row's crest lies: on lines that run down and across the water, bowing gently; one swell's
   // length apart on each row, so the lines spread toward the viewer as swells do in perspective
   const dy = y - HZ, shift = 180 + 0.85 * dy + 55 * Math.sin(dy / 65)
@@ -145,6 +148,7 @@ for (const p of sea) p.set = Math.floor(R() * 3)
 for (const p of light) p.lamp = p.hue > 135 && p.hue < 195 && p.sat > 0.3 && p.val > 0.45 && (p.sy < 75 || p.sy > 290)
 
 M.pool(moon, moonP, 22)
+for (const p of sea) p.c = p.c.map(v => v * 0.78) // the road a little dimmer than the picture's (the owner)
 M.pool(sea, seaP, 8)
 M.pool(light.filter(p => !p.lamp), lightP, 18)
 M.pool(light.filter(p => p.lamp), lightP, 8)
@@ -192,11 +196,11 @@ for (let b = 0; b < BANDS; b++) {
 }
 // the road's glints breathe in three sets, never together
 const GLINT = [11, 13, 17]
-kf('gl', '0%,100%{opacity:.55}50%{opacity:1}')
+kf('gl', '0%,100%{opacity:.5}50%{opacity:.9}')
 
 // ── the whale: one cycle of 263 s (prime), the spout at its start and the tail half a cycle later.
 // A pose rises by growing up from its waterline (scaleY), fading in, so nothing dips below the water.
-const WCYCLE = 263, WFIRST = 75
+const WCYCLE = 263, WFIRST = 20
 // each pose is also hidden (visibility) outside its own seconds, so it costs nothing while away
 const wkf = (name, keys) => {
   const on = keys.filter(([, v]) => !/opacity:0(?![.\d])/.test(v)).map(([t]) => t)
@@ -211,6 +215,29 @@ wkf('wSpout', [[0, 'transform:scale(.6,.2);opacity:0'], [3, 'transform:scale(.6,
 const T0 = 131
 wkf('wTail', [[0, up(0, 0.4)], [T0, up(0, 0.4)], [T0 + 5, up(1, 1)], [T0 + 9, up(1, 1)], [T0 + 11.5, up(0, 1)], [WCYCLE, up(0, 1)]])
 wkf('wDive', [[0, up(0, 1)], [T0 + 9, up(0, 1)], [T0 + 11, up(1, 1)], [T0 + 17, up(0, 0.3)], [WCYCLE, up(0, 0.3)]])
+// ── the lighthouse's light: it dozes, its lamp low and breathing; every 157 s (prime) it wakes, its
+// lamp brightens and a fan of mint glyphs turns once about it: pointing left, swinging toward the
+// viewer (the lamp flashing as it faces us), out to the right, and gone. Twelve seconds; hidden the rest.
+const lampCells = light.filter(p => p.lamp && p.sy < 75)
+const LAMP = [lampCells.reduce((a, p) => a + p.x, 0) / lampCells.length + 4, lampCells.reduce((a, p) => a + p.y, 0) / lampCells.length + 4]
+const BCYCLE = 157, BFIRST = 35
+kf('doze', '0%,100%{opacity:.45}50%{opacity:.7}')
+const bk = (name, keys) => kf(name, keys.map(([t, v]) => `${pc(t, BCYCLE)}%{${v};visibility:${t > 0 && t < 13 ? 'visible' : 'hidden'}}`).join(''))
+bk('wake', [[0, 'opacity:0'], [0.1, 'opacity:0'], [2, 'opacity:.6'], [5.6, 'opacity:1'], [6.6, 'opacity:1'], [10, 'opacity:.55'], [12.9, 'opacity:0'], [BCYCLE, 'opacity:0']])
+bk('beam', [[0, 'transform:scaleX(1);opacity:0'], [0.1, 'transform:scaleX(1);opacity:0'], [2, 'transform:scaleX(1);opacity:.85'], [6, 'transform:scaleX(.04);opacity:1'], [10, 'transform:scaleX(-1);opacity:.85'], [12.9, 'transform:scaleX(-1);opacity:0'], [BCYCLE, 'transform:scaleX(-1);opacity:0']])
+let beamSvg = ''
+{
+  const L = 470, rays = 11, spread = 0.15, byBand = [[], [], [], []]
+  for (let k = 0; k < rays; k++) {
+    const a = ((k - (rays - 1) / 2) / ((rays - 1) / 2)) * spread
+    for (let d = 14; d < L; d += 9 + d * 0.012) {
+      const band = Math.min(3, Math.floor((d / L) * 4))
+      if (Math.abs(k - (rays - 1) / 2) > 3 && R() < 0.3) continue
+      byBand[band].push([LAMP[0] - d, LAMP[1] + d * Math.tan(a)])
+    }
+  }
+  beamSvg = `<g class="beam">${byBand.map((pts, b) => `<text fill-opacity="${[1, 0.75, 0.48, 0.22][b]}" style="font-size:${10 + b}px;font-weight:700" x="${pts.map(q => f(q[0])).join(' ')}" y="${pts.map(q => f(q[1] + 3)).join(' ')}">${(b < 1 ? '=' : b < 3 ? '-' : '·').repeat(pts.length)}</text>`).join('')}</g>`
+}
 const wAnim = name => `animation:${name} ${WCYCLE}s ease-in-out infinite ${WFIRST - WCYCLE}s`
 
 // the spout is cut from the back where it leaves the blowhole (x 560 to 720 of its crop runs up to
@@ -251,6 +278,7 @@ const STAR_B = fallingStar('sb', { x0: 1300, y0: 130, x1: 1420, y1: 280, cycle: 
 const SKY = '#060a18'
 const bloom = `<filter id="bloom" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
 const grads = `<linearGradient id="sky" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${H}"><stop offset="0" stop-color="#03061a"/><stop offset="${f(HZ / H - 0.012)}" stop-color="#091026"/><stop offset="${f(HZ / H + 0.004)}" stop-color="#060b1d"/><stop offset="1" stop-color="${SKY}"/></linearGradient>
+<radialGradient id="lampGlow"><stop offset="0" stop-color="#c8fff4" stop-opacity=".95"/><stop offset=".18" stop-color="#7ff5df" stop-opacity=".55"/><stop offset=".5" stop-color="#5cf2d6" stop-opacity=".14"/><stop offset="1" stop-color="#5cf2d6" stop-opacity="0"/></radialGradient>
 <radialGradient id="halo"><stop offset="0" stop-color="#9fb2ec" stop-opacity=".16"/><stop offset=".45" stop-color="#7286c8" stop-opacity=".05"/><stop offset="1" stop-color="#5b6db0" stop-opacity="0"/></radialGradient>`
 
 const style = `<style>
@@ -258,7 +286,10 @@ text{font-family:ui-monospace,Menlo,"SF Mono","DejaVu Sans Mono",Consolas,monosp
 .tw{fill:#b7c3ea;animation:tw steps(16) infinite}
 ${swellCss}
 ${GLINT.map((t, i) => `.g${i}{animation:gl ${t}s steps(36) infinite ${f(-i * 4.3)}s}`).join('')}
-.lamp{animation:gl 12s steps(36) infinite}
+.lamp{opacity:.55;animation:doze 14s steps(30) infinite}
+.wake{transform-origin:${f(LAMP[0])}px ${f(LAMP[1])}px;opacity:0;animation:wake ${BCYCLE}s ease-in-out infinite ${BFIRST - BCYCLE}s}
+.beam{transform-origin:${f(LAMP[0])}px ${f(LAMP[1])}px;opacity:0;animation:beam ${BCYCLE}s ease-in-out infinite ${BFIRST - BCYCLE}s}
+.beam text{fill:#7ff5df}
 .wb{transform-origin:${f(WHALE.x)}px ${f(spoutP.water)}px;opacity:0;${wAnim('wBack')}}
 .ws{transform-origin:${f(blow[0])}px ${f(blow[1])}px;opacity:0;${wAnim('wSpout')}}
 .wt{transform-origin:${f(WHALE.x)}px ${f(tailP.water)}px;opacity:0;${wAnim('wTail')}}
@@ -275,6 +306,7 @@ function scene() {
   }
   for (const p of light) p.S0 = lightP.grid.x.T * 0.5
   const lightBody = light.filter(p => !p.lamp && p.sy <= 296 && !inFace(p))
+  const lamp = light.filter(p => p.lamp)
   // each pose over a dark backing of its own shape, so it stands out against the road's glints
   const pose = (cs, pt) => `${M.solid(cs, pt, SKY)}${M.shapes(cs, pt)}`
   const whale = `<g class="wb">${pose(backCells, spoutP)}</g><g class="ws">${M.shapes(spoutCells, spoutP)}</g><g class="wt">${pose(poses[1], tailP)}</g><g class="wd">${pose(poses[2], diveP)}</g>`
@@ -288,7 +320,8 @@ ${GLINT.map((_, i) => `<g class="g${i}">${M.shapes(sea.filter(p => p.set === i),
 ${whale}
 ${M.solid(shape, shapeP, '#080d20')}${M.solid(lightBody, lightP, '#080d20')}${M.shapes(lightBody, lightP)}${M.shapes(light.filter(p => !p.lamp && p.sy > 296), lightP)}
 ${M.solid(face.filter(p => p.kind === 'plate'), faceP, '#d4e2f7')}${M.solid(face.filter(p => p.kind === 'mark'), faceP, '#18213a')}${M.solid(face.filter(p => p.kind === 'pink'), faceP, '#f29bb0')}
-<g filter="url(#bloom)">${M.shapes(light.filter(p => p.lamp), lightP)}</g><g class="lamp">${M.shapes(light.filter(p => p.lamp), lightP)}</g>
+<g class="lamp">${M.shapes(lamp, lightP)}</g><circle class="wake" cx="${f(LAMP[0])}" cy="${f(LAMP[1])}" r="70" fill="url(#lampGlow)"/>
+${beamSvg}
 ${STAR_A}`
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice">
 ${style}

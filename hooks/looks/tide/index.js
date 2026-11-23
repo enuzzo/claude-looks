@@ -7,7 +7,7 @@ const { SCENE } = SCENE_MODULE
 export default {
   id: 'tide',
   label: 'Tide',
-  description: 'A night sea in glowing glyphs: a full moon high on the left, gentle swells, a sleepy kawaii lighthouse low on the right; now and then a whale spouts or dives in the moonlight.',
+  description: 'A night sea in glowing glyphs: a full moon high on the left, gentle swells, a sleepy kawaii lighthouse whose beam turns now and then; a whale spouts or dives in the moonlight.',
   problems,
   args: {
     colors: theme,
