@@ -1,7 +1,7 @@
 // make-colors.js: copy this file into your mod's hooks folder, and leave it as it is.
 // Generated from the design system's theme code. Don't edit it.
-// sources-sha256: c44e83e0e09808d3442f475a8b2ff715181338f4973f7b860009f0fe4b4093a8
-// body-sha256: 9d71ea3fbc24f3fef16ac58e386315002d2e4763c27138821dcd756d38510d65
+// sources-sha256: 069a128edad2b7fbcabe040847e2936566ff2e55317e28dfeca8e17fecdf2043
+// body-sha256: a88496287626e8a53279406589b8688d60045d6cf03f82155a2ed0909fde278a
 var THEME_GRAPH = {
   border: "alpha-2",
   "alpha-2": "@neutral-900/10",
@@ -952,7 +952,12 @@ function read(raw) {
   });
 }
 
-var LEAST_TEXT_CONTRAST = 3, isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+var LEAST_TEXT_CONTRAST = 3, MESSAGE_COLOR_NAMES = [
+  "bg-user-message",
+  "text-user-message",
+  "bg-assistant-message",
+  "text-assistant-message"
+], isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 function undefinedIn(value, path) {
   if (value === void 0)
     return [path];
@@ -979,7 +984,7 @@ function halfProblems(mode, half, known) {
 function shapeProblems(colors) {
   if (!isRecord2(colors))
     return ["colors must be an object, so nothing paints."];
-  let { v, label, inputs } = colors, known = new Set(themeInputNames());
+  let { v, label, inputs } = colors, known = /* @__PURE__ */ new Set([...themeInputNames(), ...MESSAGE_COLOR_NAMES]);
   return [
     ...undefinedIn(colors, "colors").map((path) => `${path} is undefined, and $.theme.set refuses that: leave the key out.`),
     ...v === 1 ? [] : ["v must be 1, so nothing paints."],

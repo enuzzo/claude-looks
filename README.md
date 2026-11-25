@@ -101,6 +101,14 @@ Dark only. A snowy village at night, in the style of abyssal: a mosaic of glowin
 |---|---|
 | ![Xmas on desktop](docs/screenshots/xmas-dark-desktop.png) | <img src="docs/screenshots/xmas-dark-mobile.png" alt="Xmas on a phone" width="260"> |
 
+### `luino`
+
+Dark only. For a rainy winter at the computer: no landscape, just colour. A flat night of ink blue going to violet, a magenta haze low on the left and a cold cyan one high on the right, under a weave of ASCII so faint it is felt more than seen; now and then a scan line glides down it. Every so often, beside the conversation (never under it: the fragments move with the window's width, and hide where there is no room), a few lines of code surface from the dark in pink, cyan and violet, decode out of noise, hold with a pulsing cursor, glitch once and scramble away. They are written in Netmilk Studio's voice: milk, cookies, pixels, and `while (true) vola()`. The look also restyles the conversation itself: everything in code type, your messages in a violet bubble with a thin neon rim. Soft pink accent. Respects *reduce motion*.
+
+| Desktop | Phone |
+|---|---|
+| ![Luino on desktop](docs/screenshots/luino-dark-desktop.png) | <img src="docs/screenshots/luino-dark-mobile.png" alt="Luino on a phone" width="260"> |
+
 ## Make a look
 
 Read [docs/DIRECTION.md](docs/DIRECTION.md) first: what a look here is made of, how slow it moves, and

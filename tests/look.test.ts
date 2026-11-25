@@ -103,7 +103,7 @@ test('/look preview draws a picture of each look on the apps', async ($, on) => 
 // The attributes $.theme.set takes (ThemeSetArgs, ThemeBackdrop): it refuses any other by name,
 // so a renamed one must fail here, not in the app. Builds have named the backdrop `scene`, then
 // `id`, then (2.1.325) `scene` again; the plugin sends `id` and falls back to `scene`.
-const THEME_KEYS = ['backdrop', 'colors']
+const THEME_KEYS = ['backdrop', 'colors', 'style']
 const BACKDROP_KEYS = ['id', 'scene', 'glass', 'colorScheme']
 
 test('every look sets a theme this build takes', async ($, on) => {

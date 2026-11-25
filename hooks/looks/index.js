@@ -7,6 +7,7 @@ import tide from './tide/index.js'
 import abyssal from './abyssal/index.js'
 import koi from './koi/index.js'
 import xmas from './xmas/index.js'
+import luino from './luino/index.js'
 
 /** @type {readonly import('./types').Look[]} */
 export const LOOKS = [
@@ -17,6 +18,7 @@ export const LOOKS = [
   abyssal,
   koi,
   xmas,
+  luino,
 ]
 
 export const DEFAULT_LOOK = 'synthwave'
