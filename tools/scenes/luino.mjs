@@ -1,11 +1,10 @@
 // luino scene generator. Run: node tools/scenes/luino.mjs
 // A flat night of colour for a rainy winter at the computer: ink blue going to violet, a magenta haze low
 // on the left and a cold cyan one high on the right, under a weave of ASCII so faint it is felt more than
-// seen. A slow scan line passes down the weave now and then, lighting its grid of dots. And every so
-// often, in the open bands beside the conversation, a few lines of code surface from the dark: they come
+// seen. And every so often, in the open bands beside the conversation, a few lines of code surface from the dark: they come
 // in as noise, decode left to right, hold for a while, glitch once, scramble again and are gone. Each
 // fragment on its own prime cycle, so they never meet the same way twice.
-// Built to draw cheaply (docs/DIRECTION.md rule 9): the weave and the scan are pattern tiles, a fragment's
+// Built to draw cheaply (docs/DIRECTION.md rule 9): the weave is a pattern tile, a fragment's
 // pages are switched with visibility and steps(), everything hidden while away.
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -41,47 +40,40 @@ for (let r = 0; r < TILE_R; r++) for (let c = 0; c < TILE_C; c++) {
 const tileText = (cs, fill, a) => `<text fill="${fill}" fill-opacity="${a}" x="${cs.map(c => c[0]).join(' ')}" y="${cs.map(c => c[1]).join(' ')}">${esc(cs.map(c => c[2]).join(''))}</text>`
 const weaveTile = `<pattern id="weave" width="${CW * TILE_C}" height="${CH * TILE_R}" patternUnits="userSpaceOnUse"><g style="font-size:10px">${tileText(tones[0], '#8a84d6', 0.07)}${tileText(tones[1], PINK, 0.075)}</g></pattern>`
 
-// ── the scan: a band three rows high that glides down the field, a grid of dots riding in it. One pass takes
-// 60 s, then the field rests; the next pass comes 131 s after the last began.
-const SCAN = 131, PASS = 60
-const ROWS = Math.ceil(H / CH) + 4
-const scanTile = `<pattern id="scan" width="${CW}" height="${CH}" patternUnits="userSpaceOnUse"><text x="${CW / 2}" y="${CH / 2}" fill="${PINK}" style="font-size:10px">·</text></pattern>`
-kf('scan', `0%{transform:translateY(0);visibility:visible;animation-timing-function:linear}${p3((PASS / SCAN) * 100)}%{transform:translateY(${ROWS * CH}px);visibility:hidden}100%{transform:translateY(${ROWS * CH}px);visibility:hidden}`)
-const scanSvg = `<g class="scan"><rect y="${-3 * CH}" width="${W}" height="${CH}" fill="url(#scan)" opacity=".18"/><rect y="${-2 * CH}" width="${W}" height="${CH}" fill="url(#scan)" opacity=".42"/><rect y="${-CH}" width="${W}" height="${CH}" fill="url(#scan)" opacity=".18"/></g>`
-css += `.scan{visibility:hidden;animation:scan ${SCAN}s linear infinite -${SCAN - 17}s}\n`
-
 // ── the fragments: a few lines of code each, placed by hand in the open bands (docs/DIRECTION.md,
 // Layout): the field beside the sidebar (270 to 550), the band between the conversation and the right
 // panel (1150 to 1340), and two in the edge bands that panels cover. Each line has a colour of its own.
-const NOISE = [...'01#%&*+=/\\<>{}[]~^$@アイウエオカキクケコサシスセソ']
+// The noise a line scrambles through: digits, katakana and the weave's own marks. Never @, ( or the
+// brackets: a scene whose text held `@x` or the like drew nothing at all in the desktop app (2026-11-25).
+const NOISE = [...'01*+=/\\<>:|アイウエオカキクケコサシスセソ']
 // Written in Netmilk's voice (Vibemilk's docs/brand-voice.md and the studio's rotating phrases): a bit tech, a
 // bit visual, a bit cheeky; milk, cookies and pixels.
 const FRAGS = [
-  { x: 290, y: 430, cycle: 61, first: 6, lines: [
+  { x: 290, y: 430, cycle: 31, first: 2, lines: [
     ['// netmilk.studio · build 42', DIM],
-    ["const latte = mungi('pixel')", CYAN],
-    ['if (latte.versato) ridi()', PINK],
-    ['export default design(latte)', VIOLET]] },
-  { x: 1160, y: 300, cycle: 71, first: 21, lines: [
+    ["const latte = await mungi.pixel", CYAN],
+    ["if (latte.versato) mood = 'lol'", PINK],
+    ['export default { latte, design }', VIOLET]] },
+  { x: 1160, y: 300, cycle: 37, first: 8, lines: [
     ['for (const cookie of jar) {', PINK],
-    ['  dunk(cookie, milk)', CYAN],
+    ['  cookie.inzuppato = true', CYAN],
     ['}', PINK]] },
-  { x: 1160, y: 470, cycle: 79, first: 44, lines: [
-    ['while (true) vola()', CYAN],
+  { x: 1160, y: 470, cycle: 41, first: 14, lines: [
+    ['gravity = undefined', CYAN],
     ['// indifferenti alla gravità', DIM]] },
-  { x: 300, y: 760, cycle: 89, first: 33, lines: [
+  { x: 300, y: 760, cycle: 43, first: 20, lines: [
     ['$ netmilk --wake', VIOLET],
     ['> caffè ............ ok', DIM],
     ['> biscotti ......... ok', DIM],
     ['> siamo il glitch nel Matrix', PINK]] },
-  { x: 1160, y: 640, cycle: 103, first: 58, lines: [
+  { x: 1160, y: 640, cycle: 47, first: 26, lines: [
     ['01101011 01110101', CYAN],
     ['01100100 01101111!', CYAN],
     ['// non è un bug, è una feature', DIM]] },
-  { x: 54, y: 250, cycle: 127, first: 77, lines: [
+  { x: 54, y: 250, cycle: 53, first: 32, lines: [
     ['↑ ↑ ↓ ↓ ← → ← → B A', PINK],
     ['> cheat: +1 mucca', DIM]] },
-  { x: 1380, y: 860, cycle: 149, first: 99, lines: [
+  { x: 1380, y: 860, cycle: 59, first: 38, lines: [
     ["milk.color = 'black'", CYAN],
     ['// the new black', DIM]] },
 ]
@@ -133,36 +125,49 @@ FRAGS.forEach((fr, n) => {
 if (LIFE > Math.min(...FRAGS.map(fr => fr.cycle))) throw new Error('a fragment lives longer than its cycle')
 
 // ── never under the conversation. The panels are pixels and the scene scales with the window (xMinYMax
-// slice: k = width / 1600 on windows 16:10 and wider), so a fragment placed in scene units drifts toward
-// the column on smaller windows. For each band of window widths, every fragment is moved (a translateX on
-// its group) to where it clears the column and its 48 px of glass in the three states the owner works in
-// (both panels open, the sidebar alone, neither; tools/qa/app-frame.mjs holds the geometry), with 16 px to
-// spare; where no such place is left on screen it is hidden for that band. Taller windows and phones,
-// where the column takes the middle of everything, show none.
-const CHAR = 10.5 * 0.602, SPARE = 16
+// slice: k = max(width / 1600, height / 1000)), so a fragment placed in scene units drifts toward the
+// column on smaller or taller windows. For each band of window widths and of shapes (16:10 and wider,
+// then two bands of taller windows down to 13:10), every fragment is moved (a translateX on its group) to
+// where it clears the column and its 48 px of glass in the three states the owner works in (both panels
+// open, the sidebar alone, neither; tools/qa/app-frame.mjs holds the geometry), with 16 px to spare,
+// taking the band's worst scale; where no such place is left on screen it is hidden for that band.
+// Windows taller than 13:10 and phones, where the column takes the middle of everything, show none.
+const CHAR = 10.5 * 0.602, SPARE = 16, SIDEBAR = 236
 const colLeft = w => w / 2 - 418 // both panels open: (236 + w - 296) / 2 - 340 - 48
 const colRight = w => w / 2 + 506 // the sidebar alone: (236 + w) / 2 + 340 + 48
+// shapes as width per 1000 of height: [lowest, highest, the media query that picks the band]
+const SHAPES = [
+  [1600, 1600, '(min-aspect-ratio:1600/1000)'],
+  [1450, 1600, '(min-aspect-ratio:1450/1000) and (max-aspect-ratio:1599/1000)'],
+  [1300, 1450, '(min-aspect-ratio:1300/1000) and (max-aspect-ratio:1449/1000)'],
+]
 let media = ''
-for (let w0 = 1000; w0 < 4000; w0 += 40) {
-  const w1 = w0 + 40
-  let rules = ''
-  FRAGS.forEach((fr, n) => {
-    const len = Math.max(...fr.lines.map(l => l[0].length)) * CHAR + (n === 0 ? 0 : 0)
-    if (fr.x < 800) {
-      // left of the column: its right end at most at the column's left edge, at the band's narrowest
-      const max = (colLeft(w0) - SPARE) / (w1 / 1600) - len
-      if (max < 4) rules += `.f${n}o{opacity:0!important}`
-      else if (max < fr.x) rules += `.f${n}o{transform:translateX(${f(max - fr.x)}px)}`
-    } else {
-      // right of it: its left end at least at the column's right edge, at the band's widest
-      const min = (colRight(w1) + SPARE) / (w0 / 1600)
-      if (min + len > 1596) rules += `.f${n}o{opacity:0!important}`
-      else if (min > fr.x) rules += `.f${n}o{transform:translateX(${f(min - fr.x)}px)}`
-    }
-  })
-  if (rules) media += `@media (min-width:${w0}px) and (max-width:${w1 - 0.01}px){${rules}}\n`
+for (const [lo, hi, shape] of SHAPES) {
+  for (let w0 = 1000; w0 < 4000; w0 += 40) {
+    const w1 = w0 + 40
+    const kMax = w1 / lo, kMin = w0 / hi // the band's largest and smallest scale
+    let rules = ''
+    FRAGS.forEach((fr, n) => {
+      const len = Math.max(...fr.lines.map(l => l[0].length)) * CHAR
+      if (fr.x < 800) {
+        // left of the column: its right end at most at the column's left edge, at the band's largest scale
+        const max = (colLeft(w0) - SPARE) / kMax - len
+        // one beside the sidebar may not slide under it, cut in half: hidden instead (236 px, the sidebar)
+        const under = fr.x * kMin >= SIDEBAR && Math.min(max, fr.x) * kMin < SIDEBAR + 8
+        if (max < 4 || under) rules += `.f${n}o{opacity:0!important}`
+        else if (max < fr.x) rules += `.f${n}o{transform:translateX(${f(max - fr.x)}px)}`
+      } else {
+        // right of it: its left end at least at the column's right edge, at the band's smallest scale,
+        // and its right end still on screen (the scene shows lo scene units across, at the least)
+        const min = (colRight(w1) + SPARE) / kMin
+        if (min + len > lo - 4) rules += `.f${n}o{opacity:0!important}`
+        else if (min > fr.x) rules += `.f${n}o{transform:translateX(${f(min - fr.x)}px)}`
+      }
+    })
+    if (rules) media += `@media (min-width:${w0}px) and (max-width:${w1 - 0.01}px) and ${shape}{${rules}}\n`
+  }
 }
-media += `@media (max-width:999.99px),(max-aspect-ratio:1599/1000){.frag{opacity:0!important}}\n`
+media += `@media (max-width:999.99px),(max-aspect-ratio:1299/1000){.frag{opacity:0!important}}\n`
 
 const style = `<style>
 text{font-family:${FONT};white-space:pre}
@@ -177,12 +182,11 @@ const DEFS = `<linearGradient id="field" gradientUnits="userSpaceOnUse" x1="0" y
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMax slice">
 ${style}
-<defs>${DEFS}${weaveTile}${scanTile}</defs>
+<defs>${DEFS}${weaveTile}</defs>
 <rect x="-200" y="-400" width="${W + 400}" height="${H + 400}" fill="url(#field)"/>
 <rect x="-200" y="-400" width="${W + 400}" height="${H + 400}" fill="url(#magenta)"/>
 <rect x="-200" y="-400" width="${W + 400}" height="${H + 400}" fill="url(#cyan)"/>
 <rect x="-240" y="-416" width="${W + 480}" height="${H + 432}" fill="url(#weave)"/>
-${scanSvg}
 ${fragSvg}
 </svg>`.replace(/\n\s*\n/g, '\n')
 

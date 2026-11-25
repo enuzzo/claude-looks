@@ -103,7 +103,7 @@ Dark only. A snowy village at night, in the style of abyssal: a mosaic of glowin
 
 ### `luino`
 
-Dark only. For a rainy winter at the computer: no landscape, just colour. A flat night of ink blue going to violet, a magenta haze low on the left and a cold cyan one high on the right, under a weave of ASCII so faint it is felt more than seen; now and then a scan line glides down it. Every so often, beside the conversation (never under it: the fragments move with the window's width, and hide where there is no room), a few lines of code surface from the dark in pink, cyan and violet, decode out of noise, hold with a pulsing cursor, glitch once and scramble away. They are written in Netmilk Studio's voice: milk, cookies, pixels, and `while (true) vola()`. The look also restyles the conversation itself: everything in code type, your messages in a violet bubble with a thin neon rim. Soft pink accent. Respects *reduce motion*.
+Dark only. For a rainy winter at the computer: no landscape, just colour. A flat night of ink blue going to violet, a magenta haze low on the left and a cold cyan one high on the right, under a weave of ASCII so faint it is felt more than seen. Every few seconds, beside the conversation (never under it: the fragments move with the window's width, and hide where there is no room), a few lines of code surface from the dark in pink, cyan and violet, decode out of noise, hold with a pulsing cursor, glitch once and scramble away. They are written in Netmilk Studio's voice: milk, cookies, pixels, and `gravity = undefined`. The look also restyles the conversation itself: everything in code type, your messages in a violet bubble with a thin neon rim. Soft pink accent. Respects *reduce motion*.
 
 | Desktop | Phone |
 |---|---|

@@ -52,6 +52,11 @@ export function refusals(svg) {
     if (why) out.add(`in a style sheet: ${why}`)
   }
   const rest = svg.replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, '')
+  // Text between tags: an `@` straight before a letter. Luino 0.7.0's scramble noise held `@ス`, `@m` and the
+  // like and the desktop app drew nothing at all (2026-11-25); `@@`, `@%` (synthwave) and a backslash draw fine.
+  // The app's exact rule for text is not known: this is the narrowest one that told the two apart.
+  const text = rest.replace(/<[^>]*>/g, '')
+  if (/@\p{L}/u.test(text)) out.add('in text: an @ before a letter')
   for (const tag of rest.matchAll(/<([A-Za-z][\w:-]*)((?:\s+[^\s=>/]+\s*=\s*"[^"]*")*)\s*\/?>/g)) {
     const [, el, attrs] = tag
     for (const [, name, value] of attrs.matchAll(/([^\s=]+)\s*=\s*"([^"]*)"/g)) {
